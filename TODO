@@ -1,0 +1,133 @@
+0.2.0
+=====
+[ ] Implement a file-based (key) configuration
+
+  The user should be able to configure his preferred keys either within the game
+  or by simply editing the configuration file, which eventually should be
+  human-readable (INI-style). However, for the sake of simplicity, a binary
+  format will be used until a human-readable file gets implemented.
+
+  The configurable key codes are: UP, DOWN, LEFT, RIGHT, FIRE/USE ITEM,
+  NEXT WEAPON, PREVIOUS WEAPON, WEAPON TYPE SWITCH, TOGGLE INVENTORY
+
+  Also, the user should be able to change his nickname in the options dialogue.
+
+[ ] Rearrange status windows
+
+  The status windows should only show necessary pieces of information to the
+  player. The player position as well as the elapsed time should only be shown
+  for debugging purposes. Eventually, there will be three windows: The EUS
+  status (showing a progress bar, the absolute amount of EXP gained as well as
+  the amount of EXP needed for the next upgrade), the ship's state
+  (Health/Armour) and some pieces of information about your weapons (weapon in
+  use, available weapons, ammunition).
+
+[ ] Implement message windows
+
+  It's essential to let the player know that something important has happend or
+  is going to happen soon. For this very reason, message windows have to be
+  implemented: Every w_msg is a window at the bottom of the screen, two rows
+  high and 80 columns wide, overlapping the status windows, using a noticeable
+  color scheme (e. g. black text on a white background - in this case this is
+  very eye-catching!) and showing some portions of text which explains the
+  current situation to the player.
+
+  Also, sometimes the player has to make a decision: Should he leave the zone,
+  upgrade his weapons rather than the ship's shield and so on.
+  That's why the message windows have to include some sort of input control,
+  which gives the player the possibility to, for instance, choose one of several
+  answers.
+
+  [x] Find a way to stop the timer and resume it at the same position
+
+0.3.0
+=====
+[ ] Implement EXP
+
+  To progress in ASCII Combat, the player has to gain experience points, EXP.
+  EXP are needed if you want to upgrade your weapons or your ship, and
+  eventually, they will result - together with other factors - in your personal
+  score.
+
+  [ ] Replace score values with EXP values
+  [ ] Write an algorithm which converts EXP and other factors to a highscore
+
+[ ] Implement armour
+
+  Armour is actually the ship's shield which helps to reduce the amount of
+  damage your ship takes. It prevents the immediate destruction of the ship
+  itself.
+
+[ ] Implement items
+
+  Items are entities which randomly spawn on the playing field and quickly
+  disappear if the player doesn't pick them up. Items are either weapons or
+  artifacts. Whilst weapons will only spawn if the player doesn't already own
+  the same type of weapon, artifacts always spawn during the whole game.
+
+  There will be three different weapon types: Some kind of machine gun, a laser
+  and a special weapon which is able to do all the craziest things. They all
+  will be very weak when the player gets them, but their power will vastly
+  improve as the player gains more EXP and thus is able to upgrade his weapons.
+  Also, the way the weapons shoot their ammunition will change if they are
+  upgraded, more details will be added later on.
+
+  Artifacts only have two types: Either they are used immediately when the
+  player picks them up or the player is able to store them in his inventory, so
+  he is able to use them later on. Artifacts help (or harm) the player in
+  different ways - again, more details will be added later.
+
+[ ] Implement an inventory
+
+  The player should always be able to know which items he has collected and
+  what properties they have. For this reason, a fullscreen window/menu should be
+  shown which displays all items and their features.
+
+  [ ] Create a new w_inv with information about weapons and items
+
+0.4.0
+=====
+[ ] Implement stages
+
+  Stages are what one might call levels. Every stage is a part of the game, in
+  which the player is able to gain EXP. At the end of every stage there is a
+  so-called stage boss, which the player has to defeat in order to continue
+  (or to quit) the game. The difficulty of the game increases from stage to
+  stage (enemies have more health points, deal more damage and so on).
+
+  [ ] Write formulas for ...
+
+    [ ] Score calculation
+    [ ] Gradual player stats improvement
+    [ ] Gradual enemy stats improvement
+    [ ] Gradual obstacle stats improvement
+    [ ] Decreasing item spawn probability
+    [ ] Increasing entity spawn probability
+
+0.5.0
+=====
+[ ] Implement BURNING obstacles
+[ ] Implement POISONED obstacles
+[ ] Implement LIGHTNING obstacles
+
+0.6.0
+=====
+[ ] Implement REGULAR enemies
+[ ] Implement KAMIKAZE enemies
+[ ] Implement NINJA enemies
+
+0.7.0
+=====
+[ ] Implement stage bosses
+
+  [ ] Write a spawn function which disables spawning of other entities
+  [ ] Implement wormholes
+  [ ] Write a stage boss randomiser
+
+1.0.0
+=====
+[ ] Show a nice intro
+[ ] Nice documentation
+[ ] Polished code
+[ ] ????
+[ ] PROFIT

@@ -1,0 +1,21 @@
+    #     #####   #####  ### ###     #####
+   # #   #     # #     #  #   #     #     #  ####  #    # #####    ##   #####
+  #   #  #       #        #   #     #       #    # ##  ## #    #  #  #    #
+ #     #  #####  #        #   #     #       #    # # ## # #####  #    #   #
+ #######       # #        #   #     #       #    # #    # #    # ######   #
+ #     # #     # #     #  #   #     #     # #    # #    # #    # #    #   #
+ #     #  #####   #####  ### ###     #####   ####  #    # #####  #    #   #
+
+                                     0.1.0
+
+
+ASCII Combat is an arcade game about killing ASCII characters. It's an indie
+game, so you've probably never heard of it. ASCII Combat is written entirely in
+C, using the ncurses toolkit.
+
+For more information about ASCII Combat and its game mechanics, see:
+
+    >implying there's a project web page
+
+ASCII Combat is distributed under the terms of the GNU General Public License,
+version 3 or later. See the COPYING file for details.
