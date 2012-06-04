@@ -26,8 +26,8 @@ int main(void)
   OBSTACLELIST * lo;
   BULLETLIST * lb;
   ENEMYLIST * le;
-  char p_name[P_MAXNAMELEN];
 
+  cfg = malloc(sizeof(CONFIG));
   // Random numbers
   srand((unsigned)time(NULL));
 
@@ -35,24 +35,13 @@ int main(void)
   printf("\nThis program comes with ABSOLUTELY NO WARRANTY.\n"
          "This is free software, and you are welcome to redistribute it\n"
          "under certain conditions; see the COPYING file for details.\n");
-  // TODO: The player should be able to do this via an options menu
-  printf("\nEnter your name and press ENTER (max. %d characters)\n",
-         P_MAXNAMELEN);
-  fgets(p_name, P_MAXNAMELEN, stdin);
-  if (p_name[0] == '\n')
-  {
-    strcpy(p_name, "Unknown");
-  }
-  else if (p_name[strlen(p_name) - 1] == '\n')
-  {
-    p_name[strlen(p_name) - 1] = '\0';
-  }
 
+  strcpy(cfg->p_name, "Unknown");
   init_console();
   init_game();
   init_field();
   lw = init_windows();
-  p = create_player(lw->w_game, lw->w_field, p_name);
+  p = create_player(lw->w_game, lw->w_field);
   t = init_timer(lw->w_game);
   lo = create_obstaclelist();
   lb = create_bulletlist();

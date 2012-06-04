@@ -5,7 +5,7 @@ CFLAGS=-D_GNU_SOURCE -Wall -Wextra -Wformat=2 -Wswitch-default -Wcast-align \
 				-Wundef -Wnested-externs -Wcast-qual -Wshadow -Wwrite-strings \
 				-Wconversion -Wunreachable-code -Wstrict-aliasing=2 -ffloat-store \
 				-fno-common -fstrict-aliasing -std=c99 -pedantic -O0 -ggdb3 -pg -c
-LDFLAGS=-L/usr/lib -lcurses -lm -lmenu
+LDFLAGS=-L/usr/lib -lcurses -lm -lmenu -lform
 SRCFILES=$(wildcard *.c)
 OBJFILES=$(patsubst %.c,%.o,$(SRCFILES))
 PROGNAME=ascii-combat

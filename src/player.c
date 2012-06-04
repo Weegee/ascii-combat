@@ -52,12 +52,11 @@ create_bullet(WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
 
 // Initialises the player character
 PLAYER *
-create_player(WINDOW * w_game, WINDOW * w_field, char * p_name)
+create_player(WINDOW * w_game, WINDOW * w_field)
 {
   PLAYER * p;
 
   p = malloc(sizeof(PLAYER));
-  p->name = p_name;
   p->quit = false;
   p->ch = '>';
   p->x = CON_FIELDMAXX / 2;
@@ -75,7 +74,7 @@ create_player(WINDOW * w_game, WINDOW * w_field, char * p_name)
   }
   write_log(LOG_VERBOSE, "Created player %p\n", (void *) p);
   write_log(LOG_DEBUG, "x: %d; y: %d; name: %s; hp: %d; ammo: %d; score: %d\n",
-            p->x, p->y, p->name, p->hp, p->ammo, p->score);
+            p->x, p->y, cfg->p_name, p->hp, p->ammo, p->score);
   return p;
 }
 

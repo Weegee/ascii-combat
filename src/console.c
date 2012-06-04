@@ -21,6 +21,26 @@
 // The playing field is actually 21 rows high and 78 columns wide
 int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
 FILE * g_log;
+CONFIG * cfg;
+
+/* Creates a ncurses form within the specified windows, also sets the given
+ * attributes */
+FORM *
+create_form(WINDOW * w_form, WINDOW * w_sub, FIELD ** fld)
+{
+  FORM * f;
+
+  f = new_form(fld);
+  set_form_win(f, w_form);
+  set_form_sub(f, w_sub);
+  post_form(f);
+  wrefresh(w_form);
+
+  write_log(LOG_VERBOSE, "Created form %p\n", (void *) f);
+  write_log(LOG_DEBUG, "fld: %p; w_form: %p; w_sub: %p\n", (void *) fld,
+           (void *) w_form, (void *) w_sub);
+  return f;
+}
 
 /* Creates a ncurses menu using the specified windows, then sets the given
  * attributes */
@@ -105,6 +125,30 @@ create_win(int rows, int cols, int x, int y, bool box, chtype cp)
   }
 }
 
+// Wrapper function for the menu driver
+int
+ctrl_menu(WINDOW * w, MENU * m)
+{
+  int key;
+
+  while ((key = getch()) != '\n')
+  {
+    switch (key)
+    {
+      case KEY_DOWN:
+        menu_driver(m, REQ_DOWN_ITEM);
+        break;
+      case KEY_UP:
+        menu_driver(m, REQ_UP_ITEM);
+        break;
+      default:
+        break;
+    }
+    wrefresh(w);
+  }
+  return item_index(current_item(m));
+}
+
 // Displays the elapsed seconds since the game's start, DEBUG ONLY
 void
 ctrl_timer(WINDOW * w_game, TIMER * t)
@@ -159,6 +203,7 @@ init_console()
   init_pair(CP_YELLOWBLACK, COLOR_YELLOW, COLOR_BLACK);
   init_pair(CP_MAGENTABLACK, COLOR_MAGENTA, COLOR_BLACK);
   init_pair(CP_REDWHITE, COLOR_RED, COLOR_WHITE);
+  init_pair(CP_BLACKWHITE, COLOR_BLACK, COLOR_WHITE);
 
   keypad(stdscr, true);
   cbreak();
@@ -231,13 +276,30 @@ init_windows()
   return lw;
 }
 
+// Destroys a ncurses form
+void
+rm_form(FORM * f)
+{
+  WINDOW * w_form, * w_sub;
+
+  w_form = form_win(f);
+  w_sub = form_sub(f);
+  write_log(LOG_VERBOSE, "Removing form %p\n", (void *) f);
+  write_log(LOG_DEBUG, "w_form: %p; w_sub: %p\n", (void *) w_form,
+            (void *) w_sub);
+
+  unpost_form(f);
+  free_form(f);
+
+  wrefresh(w_form);
+}
+
 // Destroys a ncurses menu
 void
 rm_menu(MENU * m)
 {
   ITEM ** li;
-  WINDOW * w_menu;
-  WINDOW * w_sub;
+  WINDOW * w_menu, * w_sub;
   int num;
 
   li = menu_items(m);
@@ -279,7 +341,7 @@ set_inputmode(int mode)
   {
     case IM_TEXTINPUT:
       // Shows the cursor as well as the entered text
-      echo();
+      noecho();
       curs_set(true);
       break;
     case IM_KEYPRESS:

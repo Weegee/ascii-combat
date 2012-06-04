@@ -21,6 +21,7 @@
 
 #include <ncurses.h>
 #include <menu.h>
+#include <form.h>
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
@@ -29,7 +30,9 @@
 
 #include "util.h"
 
-#define INFO_VERSION "0.1.0"
+#define INFO_VERSION "0.2.0-dev"
+// Player name has 20 characters
+#define P_MAXNAMELEN 21
 
 enum loglevel
 {
@@ -50,7 +53,7 @@ enum inputmodes
 enum colourpairs
 {
   CP_WHITEBLACK, CP_WHITERED, CP_REDBLACK, CP_YELLOWBLACK, CP_MAGENTABLACK,
-  CP_REDWHITE
+  CP_REDWHITE, CP_BLACKWHITE
 };
 
 enum entitytypes
@@ -74,20 +77,29 @@ typedef struct timer
   long msec_elapsed;
 } TIMER;
 
+typedef struct configuration
+{
+  char p_name[P_MAXNAMELEN];
+} CONFIG;
+
 extern FILE * g_log;
 extern int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
+extern CONFIG * cfg;
 
+FORM * create_form(WINDOW * w_form, WINDOW * w_sub, FIELD ** fld);
 MENU * create_menu(WINDOW * w_menu, WINDOW * w_sub, const char ** items,
                    int num, chtype cp_sel, chtype cp_unsel);
 WINDOW * create_subwin(WINDOW * w_parent, int rows, int cols, int x, int y,
                        bool box, chtype cp);
 WINDOW * create_win(int rows, int cols, int x, int y, bool box, chtype cp);
+int ctrl_menu(WINDOW * w, MENU * m);
 void ctrl_timer(WINDOW * w_game, TIMER * t);
 COORDS get_geometry(WINDOW * w);
 void init_console(void);
 void init_field(void);
 TIMER * init_timer(WINDOW * w);
 WINDOWLIST * init_windows(void);
+void rm_form(FORM * f);
 void rm_menu(MENU * m);
 void rm_win(WINDOW * w);
 void set_inputmode(int mode);

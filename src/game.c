@@ -194,7 +194,7 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
 /* Checks if the current score is higher than the lowest score in the highscore
  * file, then prints the highscore to the file */
 SCORES *
-ctrl_highscore(const char * p_name, int p_score)
+ctrl_highscore(int p_score)
 {
   char * filename;
   FILE * f_sc;
@@ -214,7 +214,7 @@ ctrl_highscore(const char * p_name, int p_score)
     strcpy(sc[i].name, "-");
     sc[i].score = 0;
   }
-  strcpy(sc[SCORESIZE].name, p_name);
+  strcpy(sc[SCORESIZE].name, cfg->p_name);
   sc[SCORESIZE].score = p_score;
 
   // TODO: It feels dirty to get the filename this way.
@@ -278,7 +278,7 @@ init_game()
   set_inputmode(IM_KEYPRESS);
   while (getch() != '\n');
   rm_win(w_splash);
-  show_menu();
+  show_startmenu();
 }
 
 // Main game loop, calls all control functions after a certain time
@@ -346,16 +346,114 @@ quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
   rm_bulletlist(lb);
   rm_enemylist(le);
 
-  show_highscore(ctrl_highscore(p->name, p->score));
+  show_highscore(ctrl_highscore(p->score));
 
   free(t);
   free(p);
   free(lw);
+  free(cfg);
   endwin();
   write_log(LOG_INFO, "Quitting game, goodbye!\n");
   fclose(g_log);
 }
 
+// Shows an options dialogue
+void
+show_options()
+{
+  WINDOW * w_opt, * w_sub;
+  FIELD * fld[2];
+  FORM * f;
+  int ch;
+  COORDS co;
+  char buf[P_MAXNAMELEN];
+
+  // Create the name field
+  fld[0] = new_field(1, P_MAXNAMELEN - 1, 2, 2, 0, 0);
+  fld[1] = NULL;
+  set_field_back(fld[0], A_NORMAL | COLOR_PAIR(CP_BLACKWHITE));
+  set_field_fore(fld[0], A_NORMAL | COLOR_PAIR(CP_BLACKWHITE));
+  field_opts_off(fld[0], O_AUTOSKIP);
+  field_opts_on(fld[0], O_BLANK);
+  set_field_buffer(fld[0], 0, cfg->p_name);
+
+  w_opt = create_win(0, 0, 0, 0, true, CP_WHITEBLACK);
+  co = get_geometry(w_opt);
+  set_winstr(w_opt, (co.x - (int) strlen("OPTIONS")) / 2, 1, A_BOLD,
+             CP_WHITEBLACK, "OPTIONS");
+  set_winstr(w_opt, (co.x - (int) strlen("(All options accept alphanumeric "
+             "characters only)")) / 2, 3, A_NORMAL, CP_WHITEBLACK, "(All "
+             "options accept alphanumeric characters only)");
+  set_winstr(w_opt, (co.x - (int) strlen("PRESS ENTER TO ACCEPT")) / 2,
+             co.y - 2, A_NORMAL, CP_REDBLACK, "PRESS ENTER TO ACCEPT");
+  w_sub = create_subwin(w_opt, 12, P_MAXNAMELEN + 3, 1, 5, false,
+                         CP_WHITEBLACK);
+  f = create_form(w_opt, w_sub, fld);
+  set_winstr(w_sub, 0, 0, A_NORMAL, CP_WHITEBLACK, "Name");
+
+  // Form driver, controls user input
+  keypad(w_opt, true);
+  while ((ch = wgetch(w_opt)) != '\n')
+  {
+    switch (ch)
+    {
+      case KEY_LEFT:
+        form_driver(f, REQ_PREV_CHAR);
+        break;
+      case KEY_RIGHT:
+        form_driver(f, REQ_NEXT_CHAR);
+        break;
+      case KEY_BACKSPACE:
+        form_driver(f, REQ_DEL_PREV);
+        break;
+      case 127: // VTEs use 127 as their backspace key
+        form_driver(f, REQ_DEL_PREV);
+        break;
+      case 330: // DEL key
+        form_driver(f, REQ_DEL_CHAR);
+        break;
+      case KEY_DOWN:
+        form_driver(f, REQ_NEXT_FIELD);
+        form_driver(f, REQ_END_LINE);
+        break;
+      case KEY_UP:
+        form_driver(f, REQ_PREV_FIELD);
+        form_driver(f, REQ_END_LINE);
+        break;
+      default:
+        if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')
+            || (ch >= '0' && ch <= '9'))
+        {
+          set_inputmode(IM_TEXTINPUT);
+          form_driver(f, ch);
+          form_driver(f, REQ_VALIDATION);
+        }
+        break;
+    }
+  }
+
+  // Change player name
+  strcpy(buf, field_buffer(fld[0], 0));
+  if (buf[0] != ' ')
+  {
+    for (int i = 0; i < P_MAXNAMELEN; i++)
+    {
+      cfg->p_name[i] = ' ';
+    }
+    strtok(buf, " ");
+    strcpy(cfg->p_name, buf);
+  }
+  write_log(LOG_DEBUG, "cfg->p_name: %s; buf: %s;\n", cfg->p_name, buf);
+
+  rm_form(f);
+  for (int i = 0; i < (int) (sizeof(fld) / sizeof(fld[0])); i++)
+  {
+    free_field(fld[i]);
+  }
+  set_inputmode(IM_KEYPRESS);
+  rm_win(w_sub);
+  rm_win(w_opt);
+}
 // Displays the current highscore
 void
 show_highscore(SCORES * sc)
@@ -386,21 +484,22 @@ show_highscore(SCORES * sc)
 
 // Shows the menu screen
 void
-show_menu()
+show_startmenu()
 {
   WINDOW * w_menu, * w_sub;
   COORDS co;
-  const char * items[3];
+  const char * items[4];
   MENU * m;
-  int key;
 
   w_menu = create_win(CON_TERMY / 2, CON_TERMX / 2, CON_TERMX / 4,
                       CON_TERMY / 4, true, CP_WHITERED);
   co = get_geometry(w_menu);
-  w_sub = create_subwin(w_menu, 3, co.x - 4, 2, 2, false, CP_WHITERED);
+  w_sub = create_subwin(w_menu, sizeof(items) / sizeof(items[0]), co.x - 4, 2,
+          2, false, CP_WHITERED);
   items[0] = "Start Game";
   items[1] = "Show Highscore";
-  items[2] = "Quit";
+  items[2] = "Options";
+  items[3] = "Quit";
   m = create_menu(w_menu, w_sub, items,
                   (int) (sizeof(items) / sizeof(char *)), CP_REDWHITE,
                   CP_WHITERED);
@@ -412,33 +511,26 @@ show_menu()
 
   while (true)
   {
-    while ((key = getch()) != '\n')
-    {
-      switch (key)
-      {
-        case KEY_DOWN:
-          menu_driver(m, REQ_DOWN_ITEM);
-          break;
-        case KEY_UP:
-          menu_driver(m, REQ_UP_ITEM);
-          break;
-        default:
-          break;
-      }
-      wrefresh(w_menu);
-    }
+    int index;
 
-    if (item_index(current_item(m)) == 0)
+    index = ctrl_menu(w_menu, m);
+    if (index == 0)
     {
       break;
     }
-    else if (item_index(current_item(m)) == 1)
+    else if (index == 1)
     {
-      show_highscore(ctrl_highscore("", 0));
+      show_highscore(ctrl_highscore(0));
       redrawwin(w_menu);
       wrefresh(w_menu);
     }
-    else if (item_index(current_item(m)) == 2)
+    else if (index == 2)
+    {
+      show_options();
+      redrawwin(w_menu);
+      wrefresh(w_menu);
+    }
+    else if (index == 3)
     {
       rm_menu(m);
       rm_win(w_sub);

@@ -23,9 +23,6 @@
 
 #define BU_PLDAMAGE 5
 
-/* Player name has 20 characters */
-#define P_MAXNAMELEN 21
-
 enum directions
 {
   DIR_DOWN = 1, DIR_LEFT, DIR_RIGHT, DIR_UP
@@ -47,12 +44,11 @@ typedef struct player
 {
   int ammo, hp, x, y, score;
   bool quit;
-  char * name;
   chtype ch;
 } PLAYER;
 
 void create_bullet(WINDOW * w_field, BULLETLIST * lb, PLAYER * p);
-PLAYER * create_player(WINDOW * w_game, WINDOW * w_field, char * p_name);
+PLAYER * create_player(WINDOW * w_game, WINDOW * w_field);
 void ctrl_bullets(WINDOW * w_field, BULLETLIST * lb);
 void ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p,
                  TIMER * t);

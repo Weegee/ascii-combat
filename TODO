@@ -24,12 +24,12 @@
 
 [ ] Implement message windows
 
-  It's essential to let the player know that something important has happend or
+  It's essential to let the player know that something important has happened or
   is going to happen soon. For this very reason, message windows have to be
   implemented: Every w_msg is a window at the bottom of the screen, two rows
   high and 80 columns wide, overlapping the status windows, using a noticeable
   color scheme (e. g. black text on a white background - in this case this is
-  very eye-catching!) and showing some portions of text which explains the
+  very eye-catching!) and showing some portions of text which explain the
   current situation to the player.
 
   Also, sometimes the player has to make a decision: Should he leave the zone,
