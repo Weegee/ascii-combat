@@ -8,7 +8,7 @@
   format will be used until a human-readable file gets implemented.
 
   The configurable key codes are: UP, DOWN, LEFT, RIGHT, FIRE/USE ITEM,
-  NEXT WEAPON, PREVIOUS WEAPON, WEAPON TYPE SWITCH, TOGGLE INVENTORY
+  NEXT WEAPON, PREVIOUS WEAPON, TOGGLE INVENTORY
 
   Also, the user should be able to change his nickname in the options dialogue.
 

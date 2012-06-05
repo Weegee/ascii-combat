@@ -199,15 +199,16 @@ ctrl_highscore(int p_score)
   char * filename;
   FILE * f_sc;
   SCORES * sc;
+  struct passwd * passwd;
 
+  passwd = getpwuid(getuid());
   sc = malloc(SCOREARRAYSIZE * sizeof(SCORES));
   /* The highscore has 10 entries, the scores array has 11. The current score
    * and player name are copied to the last index of the array, which then gets
    * sorted by qsort. If the player's score is high enough, it will be in the
    * first 10 entries of the scores array and thus be written to the highscore
    * file, which only contains the first 10 entries of the scores array. */
-  // TODO: Using getenv("HOME") isn't really elegant ...
-  filename = malloc(strlen(getenv("HOME")) + strlen("/.acsc") + sizeof('\0'));
+  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
   for (int i = 0; i < SCOREARRAYSIZE; i++)
   {
     // Initialises the array with "empty" default values
@@ -217,8 +218,7 @@ ctrl_highscore(int p_score)
   strcpy(sc[SCORESIZE].name, cfg->p_name);
   sc[SCORESIZE].score = p_score;
 
-  // TODO: It feels dirty to get the filename this way.
-  strcpy(filename, getenv("HOME"));
+  strcpy(filename, passwd->pw_dir);
   strncat(filename, "/.acsc", 6);
   f_sc = fopen(filename, "r+");
   if (f_sc == NULL)

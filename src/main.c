@@ -27,7 +27,6 @@ int main(void)
   BULLETLIST * lb;
   ENEMYLIST * le;
 
-  cfg = malloc(sizeof(CONFIG));
   // Random numbers
   srand((unsigned)time(NULL));
 
@@ -36,8 +35,8 @@ int main(void)
          "This is free software, and you are welcome to redistribute it\n"
          "under certain conditions; see the COPYING file for details.\n");
 
-  strcpy(cfg->p_name, "Unknown");
   init_console();
+  init_config();
   init_game();
   init_field();
   lw = init_windows();

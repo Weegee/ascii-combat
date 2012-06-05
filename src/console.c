@@ -169,6 +169,53 @@ get_geometry(WINDOW * w)
   return co;
 }
 
+// Initialises the config struct
+void
+init_config()
+{
+  FILE * f_cfg;
+  char * filename;
+  struct passwd * passwd;
+
+  cfg = malloc(sizeof(CONFIG));
+  passwd = getpwuid(getuid());
+  filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
+  strcpy(filename, passwd->pw_dir);
+  strncat(filename, "/.accfg", 7);
+  f_cfg = fopen(filename, "r");
+  if (f_cfg == NULL)
+  {
+    write_log(LOG_INFO, "Unable to open file %s, creating new one\n", filename);
+    f_cfg = fopen(filename, "w");
+    write_log(LOG_VERBOSE, "Created file %p\n", (void *) f_cfg);
+    write_log(LOG_VERBOSE, "Writing default config to %s\n", filename);
+
+    strcpy(cfg->p_name, "Unknown");
+    cfg->up = (char) KEY_UP;
+    cfg->down = (char) KEY_DOWN;
+    cfg->left = (char) KEY_LEFT;
+    cfg->right = (char) KEY_RIGHT;
+    cfg->use = ' ';
+    cfg->nextw = 'd';
+    cfg->prevw = 'a';
+    cfg->inv = 's';
+
+    fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
+  }
+  else
+  {
+    write_log(LOG_VERBOSE, "Reading configuration from %s\n", filename);
+    fread(cfg, sizeof(CONFIG), 1, f_cfg);
+  }
+
+  write_log(LOG_DEBUG, "cfg->p_name: %s; cfg->up: %d; cfg->down: %d; "
+            "cfg->left: %d; cfg->right: %d; cfg->use: %d; cfg->nextw: %d; "
+            "cfg->prevw: %d; cfg->inv: %d\n", cfg->p_name, cfg->up, cfg->down,
+            cfg->left, cfg->right, cfg->use, cfg->nextw, cfg->prevw, cfg->inv);
+  fclose(f_cfg);
+  free(filename);
+}
+
 // Initiates ncurses, shows a splash screen
 void
 init_console()
@@ -340,7 +387,8 @@ set_inputmode(int mode)
   switch (mode)
   {
     case IM_TEXTINPUT:
-      // Shows the cursor as well as the entered text
+      /* Shows the cursor while typing (it is unnecessary to use echo() when
+       * dealing with ncurses forms) */
       noecho();
       curs_set(true);
       break;

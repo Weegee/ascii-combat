@@ -106,82 +106,87 @@ ctrl_bullets(WINDOW * w_field, BULLETLIST * lb)
 void
 ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p, TIMER * t)
 {
-  set_inputmode(IM_PLAYING);
+  char input;
 
+  set_inputmode(IM_PLAYING);
   if (g_fld[p->x][p->y] != ENT_PLAYER)
   {
     g_fld[p->x][p->y] = ENT_PLAYER;
   }
 
-  switch (getch())
+  input = (char) getch();
+  if (input == cfg->up)
   {
-    case KEY_UP:
-      p->ch = '^';
-      if (p->y > CON_FIELDMINY)
+    p->ch = '^';
+    if (p->y > CON_FIELDMINY)
+    {
+      mv_player(w_game, w_field, p, DIR_UP);
+    }
+    else
+    {
+      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+    }
+  }
+  else if (input == cfg->down)
+  {
+    p->ch = 'v';
+    if (p->y < CON_FIELDMAXY)
+    {
+      mv_player(w_game, w_field, p, DIR_DOWN);
+    }
+    else
+    {
+      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+    }
+  }
+  else if (input == cfg->left)
+  {
+    p->ch = '<';
+    if (p->x > CON_FIELDMINX)
+    {
+      mv_player(w_game, w_field, p, DIR_LEFT);
+    }
+    else
+    {
+      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+    }
+  }
+  else if (input == cfg->right)
+  {
+    p->ch = '>';
+    if (p->x < CON_FIELDMAXX)
+    {
+      mv_player(w_game, w_field, p, DIR_RIGHT);
+    }
+    else
+    {
+      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+    }
+  }
+  else if (input == cfg->use)
+  {
+    if (p->x < CON_FIELDMAXX && p->ammo > 0)
+    {
+      if (g_fld[p->x + 1][p->y] != ENT_BULLET)
       {
-        mv_player(w_game, w_field, p, DIR_UP);
+        create_bullet(w_field, lb, p);
       }
-      else
-      {
-        set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
-      }
-      break;
-    case KEY_DOWN:
-      p->ch = 'v';
-      if (p->y < CON_FIELDMAXY)
-      {
-        mv_player(w_game, w_field, p, DIR_DOWN);
-      }
-      else
-      {
-        set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
-      }
-      break;
-    case KEY_LEFT:
-      p->ch = '<';
-      if (p->x > CON_FIELDMINX)
-      {
-        mv_player(w_game, w_field, p, DIR_LEFT);
-      }
-      else
-      {
-        set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
-      }
-      break;
-    case KEY_RIGHT:
-      p->ch = '>';
-      if (p->x < CON_FIELDMAXX)
-      {
-        mv_player(w_game, w_field, p, DIR_RIGHT);
-      }
-      else
-      {
-        set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
-      }
-      break;
-    case ' ':
-      if (p->x < CON_FIELDMAXX && p->ammo > 0)
-      {
-        if (g_fld[p->x + 1][p->y] != ENT_BULLET)
-        {
-          create_bullet(w_field, lb, p);
-        }
-      }
-      break;
-    case 'q':
-      p->quit = true;
-      break;
-    case 'p': // Just for debug purposes
-      pause_game(t);
-      break;
-    case ERR:
-      /* Since we use nodelay(), getch() returns ERR when no key is pressed
-       * (instead of blocking everything else), however this leads to 100%
-       * cpu usage. Thus, usleep is used to calm down the cpu. */
-      usleep(500);
-      break;
-    default:
-      break;
+    }
+  }
+  else if (input == 'q')
+  {
+    p->quit = true;
+  }
+  else if (input == 'p')
+  {
+    pause_game(t);
+  }
+  else if (input == ERR)
+  {
+    /* Since we use nodelay(), getch() returns ERR when no key is pressed
+     * (instead of blocking everything else), however this leads to 100%
+     * cpu usage. Thus, usleep is used to calm down the cpu. */
+    usleep(500);
   }
 }
 

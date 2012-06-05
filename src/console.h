@@ -27,6 +27,8 @@
 #include <time.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include "util.h"
 
@@ -79,7 +81,7 @@ typedef struct timer
 
 typedef struct configuration
 {
-  char p_name[P_MAXNAMELEN];
+  char p_name[P_MAXNAMELEN], up, down, left, right, use, nextw, prevw, inv;
 } CONFIG;
 
 extern FILE * g_log;
@@ -95,6 +97,7 @@ WINDOW * create_win(int rows, int cols, int x, int y, bool box, chtype cp);
 int ctrl_menu(WINDOW * w, MENU * m);
 void ctrl_timer(WINDOW * w_game, TIMER * t);
 COORDS get_geometry(WINDOW * w);
+void init_config(void);
 void init_console(void);
 void init_field(void);
 TIMER * init_timer(WINDOW * w);
