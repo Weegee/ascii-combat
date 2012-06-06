@@ -1,6 +1,6 @@
 0.2.0
 =====
-[ ] Implement a file-based (key) configuration
+[X] Implement a file-based (key) configuration
 
   The user should be able to configure his preferred keys either within the game
   or by simply editing the configuration file, which eventually should be

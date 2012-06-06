@@ -94,6 +94,7 @@ MENU * create_menu(WINDOW * w_menu, WINDOW * w_sub, const char ** items,
 WINDOW * create_subwin(WINDOW * w_parent, int rows, int cols, int x, int y,
                        bool box, chtype cp);
 WINDOW * create_win(int rows, int cols, int x, int y, bool box, chtype cp);
+void ctrl_config(void);
 int ctrl_menu(WINDOW * w, MENU * m);
 void ctrl_timer(WINDOW * w_game, TIMER * t);
 COORDS get_geometry(WINDOW * w);

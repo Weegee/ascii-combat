@@ -125,6 +125,25 @@ create_win(int rows, int cols, int x, int y, bool box, chtype cp)
   }
 }
 
+// Stores the config struct to a config file
+void
+ctrl_config()
+{
+  FILE * f_cfg;
+  char * filename;
+  struct passwd * passwd;
+
+  passwd = getpwuid(getuid());
+  filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
+  strcpy(filename, passwd->pw_dir);
+  strncat(filename, "/.accfg", 7);
+  write_log(LOG_VERBOSE, "Writing config to %s\n", filename);
+  f_cfg = fopen(filename, "w");
+  fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
+  fclose(f_cfg);
+  free(filename);
+}
+
 // Wrapper function for the menu driver
 int
 ctrl_menu(WINDOW * w, MENU * m)
@@ -191,14 +210,14 @@ init_config()
     write_log(LOG_VERBOSE, "Writing default config to %s\n", filename);
 
     strcpy(cfg->p_name, "Unknown");
-    cfg->up = (char) KEY_UP;
-    cfg->down = (char) KEY_DOWN;
-    cfg->left = (char) KEY_LEFT;
-    cfg->right = (char) KEY_RIGHT;
+    cfg->up = 'w';
+    cfg->down = 's';
+    cfg->left = 'a';
+    cfg->right = 'd';
     cfg->use = ' ';
-    cfg->nextw = 'd';
-    cfg->prevw = 'a';
-    cfg->inv = 's';
+    cfg->nextw = 'r';
+    cfg->prevw = 'e';
+    cfg->inv = 'f';
 
     fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
   }
