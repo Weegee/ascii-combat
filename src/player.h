@@ -50,14 +50,13 @@ typedef struct player
 void create_bullet(WINDOW * w_field, BULLETLIST * lb, PLAYER * p);
 PLAYER * create_player(WINDOW * w_game, WINDOW * w_field);
 void ctrl_bullets(WINDOW * w_field, BULLETLIST * lb);
-void ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p,
-                 TIMER * t);
+void ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p);
 void rm_bullet(WINDOW * w_field, BULLETLIST * lb, BULLET * b);
 void rm_bulletlist(BULLETLIST * lb);
 BULLETLIST * create_bulletlist(void);
 void mv_bullet(WINDOW * w_field, BULLET * b);
 void mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir);
-void pause_game(TIMER * t);
+void pause_game(void);
 void set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg);
 
 #endif

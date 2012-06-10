@@ -41,33 +41,35 @@ cmp_scores(const void * sc1, const void * sc2)
 
 /* Controls all collisions between entities, starting with bullets, followed by
  * enemies and obstacles */
-// TODO: This is way too nested
 void
 ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
                OBSTACLELIST * lo, PLAYER * p)
 {
-  BULLET * b;
-  ENEMY * e;
-  OBSTACLE * o;
+  BULLET * b, * b_next;
+  ENEMY * e, * e_next;
+  OBSTACLE * o, * o_next;
+  bool rm_b, rm_e, rm_o;
 
   // Bullet collision check
-  for (b = lb->head; b != NULL; b = b->next)
+  for (b = lb->head; b != NULL; b = b_next)
   {
+    rm_b = false;
     if (p->x == b->x && p->y == b->y)
     {
       write_log(LOG_INFO, "Player %p collided with bullet %p at (%d|%d)\n",
                 (void *) p, (void *) b, p->x, p->y);
-      rm_bullet(w_field, lb, b);
+      rm_b = true;
       set_player_dmg(w_field, p, BU_PLDAMAGE);
     }
 
-    for (e = le->head; e != NULL; e = e->next)
+    for (e = le->head; e != NULL; e = e_next)
     {
+      rm_e = false;
       if (b->x == e->x && b->y == e->y)
       {
         write_log(LOG_INFO, "Bullet %p collided with enemy %p at (%d|%d)\n",
                   (void *) b, (void *) e, b->x, b->y);
-        rm_bullet(w_field, lb, b);
+        rm_b = true;
         set_enemy_dmg(w_field, e, BU_PLDAMAGE);
 
         if (e->hp == 0)
@@ -88,19 +90,26 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
 
           x = e->x;
           y = e->y;
-          rm_enemy(w_field, le, e);
+          rm_e = true;
           set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
         }
       }
+
+      e_next = e->next;
+      if (rm_e == true)
+      {
+        rm_enemy(w_field, le, e);
+      }
     }
 
-    for (o = lo->head; o != NULL; o = o->next)
+    for (o = lo->head; o != NULL; o = o_next)
     {
+      rm_o = false;
       if (b->x == o->x && b->y == o->y)
       {
         write_log(LOG_INFO, "Bullet %p collided with obstacle %p at (%d|%d)\n",
                   (void *) b, (void *) o, b->x, b->y);
-        rm_bullet(w_field, lb, b);
+        rm_b = true;
         set_obstacle_dmg(w_field, o, BU_PLDAMAGE);
 
         if (o->hp == 0)
@@ -118,16 +127,29 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
 
           x = o->x;
           y = o->y;
-          rm_obstacle(w_field, lo, o);
+          rm_o = true;
           set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
         }
       }
+
+      o_next = o->next;
+      if (rm_o == true)
+      {
+        rm_obstacle(w_field, lo, o);
+      }
+    }
+
+    b_next = b->next;
+    if (rm_b == true)
+    {
+      rm_bullet(w_field, lb, b);
     }
   }
 
   // Enemy collision check
-  for (e = le->head; e != NULL; e = e->next)
+  for (e = le->head; e != NULL; e = e_next)
   {
+    rm_e = false;
     if (p->x == e->x && p->y == e->y)
     {
       int dmg;
@@ -146,12 +168,13 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
           dmg = false;
           break;
       }
-      rm_enemy(w_field, le, e);
+      rm_e = true;
       set_player_dmg(w_field, p, dmg);
     }
 
-    for (o = lo->head; o != NULL; o = o->next)
+    for (o = lo->head; o != NULL; o = o_next)
     {
+      rm_o = false;
       if (e->x == o->x && e->y == o->y)
       {
         int x, y;
@@ -160,16 +183,29 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
         y = e->y;
         write_log(LOG_INFO, "Enemy %p collided with obstacle %p at (%d|%d)\n",
                   (void *) e, (void *) o, x, y);
-        rm_enemy(w_field, le, e);
-        rm_obstacle(w_field, lo, o);
+        rm_e = true;
+        rm_o = true;
         set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
       }
+
+      o_next = o->next;
+      if (rm_o == true)
+      {
+        rm_obstacle(w_field, lo, o);
+      }
+    }
+
+    e_next = e->next;
+    if (rm_e == true)
+    {
+      rm_enemy(w_field, le, e);
     }
   }
 
   // Obstacle collision check
-  for (o = lo->head; o != NULL; o = o->next)
+  for (o = lo->head; o != NULL; o = o_next)
   {
+    rm_o = false;
     if (p->x == o->x && p->y == o->y)
     {
       int dmg;
@@ -185,8 +221,14 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
           dmg = false;
           break;
       }
-      rm_obstacle(w_field, lo, o);
+      rm_o = true;
       set_player_dmg(w_field, p, dmg);
+    }
+
+    o_next = o->next;
+    if (rm_o == true)
+    {
+      rm_obstacle(w_field, lo, o);
     }
   }
 }
@@ -202,7 +244,7 @@ ctrl_highscore(int p_score)
   struct passwd * passwd;
 
   passwd = getpwuid(getuid());
-  sc = malloc(SCOREARRAYSIZE * sizeof(SCORES));
+  sc = calloc(SCOREARRAYSIZE, sizeof(SCORES));
   /* The highscore has 10 entries, the scores array has 11. The current score
    * and player name are copied to the last index of the array, which then gets
    * sorted by qsort. If the player's score is high enough, it will be in the
@@ -284,7 +326,7 @@ init_game()
 // Main game loop, calls all control functions after a certain time
 int
 loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
-          PLAYER * p, TIMER * t)
+          PLAYER * p)
 {
   struct timeval ct;
   long msec_elapsed;
@@ -307,7 +349,7 @@ loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
 
       if (msec_elapsed % 1000 == 0)
       {
-        ctrl_timer(lw->w_game, t);
+        ctrl_timer(lw->w_game);
         ctrl_obstacles(lw->w_field, lo, t->sec_elapsed);
         ctrl_collision(lw->w_field, lb, le, lo, p);
         ctrl_enemy_spawn(lw->w_field, le, t->sec_elapsed);
@@ -316,7 +358,7 @@ loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
     }
   }
 
-  ctrl_player(lw->w_game, lw->w_field, lb, p, t);
+  ctrl_player(lw->w_game, lw->w_field, lb, p);
   ctrl_collision(lw->w_field, lb, le, lo, p);
 
   if (p->hp == 0)
@@ -335,7 +377,7 @@ loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
 // Removes all entities, lists and windows in order to quit the game
 void
 quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
-          PLAYER * p, TIMER * t)
+          PLAYER * p)
 {
   rm_win(lw->w_field);
   rm_win(lw->w_game);
@@ -357,6 +399,52 @@ quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
   fclose(g_log);
 }
 
+// Displays the current highscore
+void
+show_highscore(SCORES * sc)
+{
+  WINDOW * w_scores;
+  COORDS co;
+
+  w_scores = create_win(CON_TERMY, CON_TERMX, 0, 0, 1, CP_WHITEBLACK);
+  co = get_geometry(w_scores);
+  set_winstr(w_scores, (co.x - (int) strlen("HIGHSCORE")) / 2, 1, A_BOLD,
+             CP_WHITEBLACK, "HIGHSCORE");
+  for (int i = 0; i < SCORESIZE; i++)
+  {
+    /* Start from the sixth line, looks better than from the third; also show
+     * the scores right-aligned */
+    set_winstr(w_scores, 1, 6 + i, A_NORMAL, CP_WHITEBLACK, sc[i].name);
+    set_winstr(w_scores, co.x - get_intlen(sc[i].score) - 1, 6 + i, A_NORMAL,
+               CP_WHITEBLACK, "%d", sc[i].score);
+  }
+  set_winstr(w_scores, (co.x - (int) strlen("PRESS ENTER TO CONTINUE")) / 2,
+             co.y - 2, A_BLINK, CP_REDBLACK, "PRESS ENTER TO CONTINUE");
+
+  set_inputmode(IM_KEYPRESS);
+  while (getch() != '\n');
+  rm_win(w_scores);
+  free(sc);
+}
+
+// Displays text in a message window (max. 160 characters)
+void
+show_message(const char * msg, ...)
+{
+  va_list args;
+  WINDOW * w_msg;
+
+  w_msg = create_win(2, CON_TERMX, 0, CON_TERMY - 2, false, CP_BLACKWHITE);
+  va_start(args, msg);
+  wmove(w_msg, 0, 0);
+  vw_printw(w_msg, msg, args);
+  va_end(args);
+
+  wrefresh(w_msg);
+  pause_game();
+  rm_win(w_msg);
+}
+
 // Shows an options dialogue
 void
 show_options()
@@ -367,6 +455,7 @@ show_options()
   int ch;
   COORDS co;
   char buf[P_MAXNAMELEN];
+  char keys[2];
 
   // 10 = number of config values
   for (int i = 0; i < 10; i++)
@@ -395,14 +484,23 @@ show_options()
   }
 
   set_field_buffer(fld[0], 0, cfg->p_name);
-  set_field_buffer(fld[1], 0, &(cfg->up));
-  set_field_buffer(fld[2], 0, &(cfg->down));
-  set_field_buffer(fld[3], 0, &(cfg->left));
-  set_field_buffer(fld[4], 0, &(cfg->right));
-  set_field_buffer(fld[5], 0, &(cfg->use));
-  set_field_buffer(fld[6], 0, &(cfg->nextw));
-  set_field_buffer(fld[7], 0, &(cfg->prevw));
-  set_field_buffer(fld[8], 0, &(cfg->inv));
+  keys[0] = cfg->up;
+  keys[1] = '\0';
+  set_field_buffer(fld[1], 0, keys);
+  keys[0] = cfg->down;
+  set_field_buffer(fld[2], 0, keys);
+  keys[0] = cfg->left;
+  set_field_buffer(fld[3], 0, keys);
+  keys[0] = cfg->right;
+  set_field_buffer(fld[4], 0, keys);
+  keys[0] = cfg->use;
+  set_field_buffer(fld[5], 0, keys);
+  keys[0] = cfg->nextw;
+  set_field_buffer(fld[6], 0, keys);
+  keys[0] = cfg->prevw;
+  set_field_buffer(fld[7], 0, keys);
+  keys[0] = cfg->inv;
+  set_field_buffer(fld[8], 0, keys);
 
   w_opt = create_win(0, 0, 0, 0, true, CP_WHITEBLACK);
   co = get_geometry(w_opt);
@@ -506,9 +604,6 @@ show_options()
     }
   }
 
-  /* TODO:
-   * - Write the cfg struct to the config file (ctrl_config) */
-
   // Change player name
   strcpy(buf, field_buffer(fld[0], 0));
   if (buf[0] != ' ')
@@ -541,33 +636,6 @@ show_options()
   rm_win(w_sub);
   rm_win(w_opt);
   ctrl_config();
-}
-// Displays the current highscore
-void
-show_highscore(SCORES * sc)
-{
-  WINDOW * w_scores;
-  COORDS co;
-
-  w_scores = create_win(CON_TERMY, CON_TERMX, 0, 0, 1, CP_WHITEBLACK);
-  co = get_geometry(w_scores);
-  set_winstr(w_scores, (co.x - (int) strlen("HIGHSCORE")) / 2, 1, A_BOLD,
-             CP_WHITEBLACK, "HIGHSCORE");
-  for (int i = 0; i < SCORESIZE; i++)
-  {
-    /* Start from the sixth line, looks better than from the third; also show
-     * the scores right-aligned */
-    set_winstr(w_scores, 1, 6 + i, A_NORMAL, CP_WHITEBLACK, sc[i].name);
-    set_winstr(w_scores, co.x - get_intlen(sc[i].score) - 1, 6 + i, A_NORMAL,
-               CP_WHITEBLACK, "%d", sc[i].score);
-  }
-  set_winstr(w_scores, (co.x - (int) strlen("PRESS ENTER TO CONTINUE")) / 2,
-             co.y - 2, A_BLINK, CP_REDBLACK, "PRESS ENTER TO CONTINUE");
-
-  set_inputmode(IM_KEYPRESS);
-  while (getch() != '\n');
-  rm_win(w_scores);
-  free(sc);
 }
 
 // Shows the menu screen
@@ -604,6 +672,9 @@ show_startmenu()
     index = ctrl_menu(w_menu, m);
     if (index == 0)
     {
+      rm_menu(m);
+      rm_win(w_sub);
+      rm_win(w_menu);
       break;
     }
     else if (index == 1)

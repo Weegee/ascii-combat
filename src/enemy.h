@@ -28,12 +28,12 @@
 
 enum enemyinfo
 {
-  EN_MAX = 3
+  EN_MAX = 100
 };
 
 enum enemy_kamikaze_stats
 {
-  EN_KAMDAMAGE = 10, EN_KAMHEALTH = 5, EN_KAMSCORE = 25, EN_KAMMAXPROB = 25
+  EN_KAMDAMAGE = 0, EN_KAMHEALTH = 5, EN_KAMSCORE = 25, EN_KAMMAXPROB = 25
 };
 
 enum enemy_regular_stats

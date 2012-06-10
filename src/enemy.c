@@ -90,7 +90,9 @@ create_enemylist()
  * total number of enemies on the playing field should be used to rewrite a
  * better collision check function. However, it is more likely that the whole
  * collision check thingy needs to be rewritten ... */
-void
+
+// Disabled because it's too buggy
+/*void
 ctrl_enemy_collision(WINDOW * w_field, ENEMYLIST * le)
 {
   ENEMY * e1, * e2;
@@ -109,25 +111,25 @@ ctrl_enemy_collision(WINDOW * w_field, ENEMYLIST * le)
                   (void *) e1, (void *) e2, x, y);
         rm_enemy(w_field, le, e2);
         rm_enemy(w_field, le, e1);
-        /* TODO: The yellow '*' on the playing field is a nice way to show that
+        / * TODO: The yellow '*' on the playing field is a nice way to show that
          * a collision has occured, however it would be better if it just
          * disappeared after one second. Might be annoying to find a better
          * solution though since the collision checks are rather nested
          * functions ... This TODO applies to all other occurences of the yellow
-         * '*'. */
+         * '*'. * /
         set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
       }
     }
   }
-}
+}*/
 
 // Controls kamikaze enemies (kamikaze AI)
 void
 ctrl_enemy_kamikaze(WINDOW * w_field, ENEMYLIST * le, PLAYER * p)
 {
-  ENEMY * e;
+  ENEMY * e, * e_next;
 
-  for (e = le->head; e != NULL; e = e->next)
+  for (e = le->head; e != NULL; e = e_next)
   {
     if (e->type == EN_KAM)
     {
@@ -137,6 +139,7 @@ ctrl_enemy_kamikaze(WINDOW * w_field, ENEMYLIST * le, PLAYER * p)
       {
         write_log(LOG_DEBUG, "Enemy %p is outside the playing field; x: %d; "
                   "y: %d\n", (void *) e, e->x, e->y);
+        e_next = e->next;
         rm_enemy(w_field, le, e);
       }
       else
@@ -212,8 +215,10 @@ ctrl_enemy_kamikaze(WINDOW * w_field, ENEMYLIST * le, PLAYER * p)
         if (dir)
         {
           mv_enemy(w_field, e, dir);
-          ctrl_enemy_collision(w_field, le);
+          //ctrl_enemy_collision(w_field, le);
         }
+
+        e_next = e->next;
       }
     }
   }
@@ -329,6 +334,7 @@ rm_enemy(WINDOW * w_field, ENEMYLIST * le, ENEMY * e)
       }
 
       free(e);
+      e = NULL;
       le->num--;
       break;
     }

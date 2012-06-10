@@ -25,7 +25,7 @@
 
 enum obstacleinfo
 {
-  OB_MAX = 250
+  OB_MAX = 100
 };
 
 enum obstacle_regular_stats

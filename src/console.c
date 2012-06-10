@@ -22,6 +22,7 @@
 int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
 FILE * g_log;
 CONFIG * cfg;
+TIMER * t;
 
 /* Creates a ncurses form within the specified windows, also sets the given
  * attributes */
@@ -170,7 +171,7 @@ ctrl_menu(WINDOW * w, MENU * m)
 
 // Displays the elapsed seconds since the game's start, DEBUG ONLY
 void
-ctrl_timer(WINDOW * w_game, TIMER * t)
+ctrl_timer(WINDOW * w_game)
 {
   if (LOG_LEVEL >= LOG_VERBOSE)
   {
@@ -288,10 +289,9 @@ init_field()
 }
 
 // Initialises the timer
-TIMER *
+void
 init_timer(WINDOW * w_game)
 {
-  TIMER * t;
   struct timeval ct;
 
   t = malloc(sizeof(TIMER));
@@ -300,10 +300,9 @@ init_timer(WINDOW * w_game)
   t->msec_elapsed = 0;
   t->sec_elapsed = 0;
 
-  ctrl_timer(w_game, t);
+  ctrl_timer(w_game);
   write_log(LOG_INFO, "Game started at %d\n", t->start);
   write_log(LOG_DEBUG, "%d.%d\n", (int) ct.tv_sec, ct.tv_usec);
-  return t;
 }
 
 /* Initialises the game/status windows showing the ammo, score, health and the
@@ -378,7 +377,7 @@ rm_menu(MENU * m)
 
   unpost_menu(m);
   free_menu(m);
-  for (int i = 0; i < num; i++)
+  for (int i = 0; i <= num; i++)
   {
     free_item(li[i]);
   }

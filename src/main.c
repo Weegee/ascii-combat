@@ -22,7 +22,6 @@ int main(void)
 {
   PLAYER * p;
   WINDOWLIST * lw;
-  TIMER * t;
   OBSTACLELIST * lo;
   BULLETLIST * lb;
   ENEMYLIST * le;
@@ -41,12 +40,12 @@ int main(void)
   init_field();
   lw = init_windows();
   p = create_player(lw->w_game, lw->w_field);
-  t = init_timer(lw->w_game);
+  init_timer(lw->w_game);
   lo = create_obstaclelist();
   lb = create_bulletlist();
   le = create_enemylist();
-  while (loop_game(lw, lb, le, lo, p, t));
+  while (loop_game(lw, lb, le, lo, p));
 
-  quit_game(lw, lb, le, lo, p, t);
+  quit_game(lw, lb, le, lo, p);
   return EXIT_SUCCESS;
 }

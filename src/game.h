@@ -33,12 +33,16 @@ typedef struct scores
 } SCORES;
 
 int cmp_scores(const void * sc1, const void * sc2);
-void ctrl_collision (WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo, PLAYER * p);
+void ctrl_collision (WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
+                     OBSTACLELIST * lo, PLAYER * p);
 SCORES * ctrl_highscore (int p_score);
 void init_game(void);
-int loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo, PLAYER * p, TIMER * t);
-void quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo, PLAYER * p, TIMER * t);
+int loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le,
+              OBSTACLELIST * lo, PLAYER * p);
+void quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le,
+               OBSTACLELIST * lo, PLAYER * p);
 void show_highscore(SCORES * sc);
+void show_message(const char * msg, ...);
 void show_options(void);
 void show_startmenu(void);
 void update_status_windows(WINDOWLIST * lw, PLAYER * p);

@@ -24,19 +24,21 @@ ctrl_obstacles(WINDOW * w_field, OBSTACLELIST * lo, int time_elapsed)
 {
   if (lo->num > 0)
   {
-    OBSTACLE * o;
+    OBSTACLE * o, * o_next;
 
-    for (o = lo->head; o != NULL; o = o->next)
+    for (o = lo->head; o != NULL; o = o_next)
     {
       if (o->x < CON_FIELDMINX)
       {
         write_log(LOG_DEBUG, "Obstacle %p is outside the playing field; x: %d; "
                   "y: %d\n", (void *) o, o->x, o->y);
+        o_next = o->next;
         rm_obstacle(w_field, lo, o);
       }
       else
       {
         mv_obstacle(w_field, o);
+        o_next = o->next;
       }
     }
   }
@@ -148,7 +150,7 @@ rm_obstacle(WINDOW * w_field, OBSTACLELIST * lo, OBSTACLE * o)
   OBSTACLE * o_prev;
   OBSTACLE * o_cur;
 
-  write_log(LOG_VERBOSE, "Removing obstacle %o\n", (void *) o);
+  write_log(LOG_VERBOSE, "Removing obstacle %p\n", (void *) o);
   write_log(LOG_DEBUG, "x: %d; y: %d; type: %d; ch: %c; lo->num: %d\n", o->x,
             o->y, o->type, o->ch, lo->num);
 
@@ -188,6 +190,7 @@ rm_obstacle(WINDOW * w_field, OBSTACLELIST * lo, OBSTACLE * o)
       }
 
       free(o);
+      o = NULL;
       lo->num--;
       break;
     }

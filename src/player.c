@@ -84,19 +84,21 @@ ctrl_bullets(WINDOW * w_field, BULLETLIST * lb)
 {
   if (lb->num > 0)
   {
-    BULLET * b;
+    BULLET * b, * b_next;
 
-    for (b = lb->head; b != NULL; b = b->next)
+    for (b = lb->head; b != NULL; b = b_next)
     {
       if (b->x > CON_FIELDMAXX)
       {
         write_log(LOG_DEBUG, "Bullet %p is outside the playing field; x: %d; "
                   "y: %d\n", (void *) b, b->x, b->y);
+        b_next = b->next;
         rm_bullet(w_field, lb, b);
       }
       else
       {
         mv_bullet(w_field, b);
+        b_next = b->next;
       }
     }
   }
@@ -104,7 +106,7 @@ ctrl_bullets(WINDOW * w_field, BULLETLIST * lb)
 
 // Controls the player input
 void
-ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p, TIMER * t)
+ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
 {
   char input;
 
@@ -173,13 +175,13 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p, TIME
       }
     }
   }
-  else if (input == 'q')
+  else if (input == '\n')
   {
     p->quit = true;
   }
-  else if (input == 'p')
+  else if (input == 'p') // Just for debug purposes, will be removed later on
   {
-    pause_game(t);
+    pause_game();
   }
   else if (input == ERR)
   {
@@ -266,7 +268,7 @@ mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
 
 // Pauses the game by freezing the timer, just for testing purposes
 void
-pause_game(TIMER * t)
+pause_game()
 {
   struct timeval ct;
   int t_freeze;
@@ -276,7 +278,7 @@ pause_game(TIMER * t)
   t_freeze = (int) ct.tv_sec;
   write_log(LOG_INFO, "Game paused at %d\n", t_freeze);
 
-  while (getch() != 'p');
+  while (getch() != ' ');
   gettimeofday(&ct, NULL);
   t->start = t->start + ((int) ct.tv_sec - t_freeze);
   write_log(LOG_INFO, "Game resumed at %d\n", ct.tv_sec);
@@ -287,8 +289,7 @@ pause_game(TIMER * t)
 void
 rm_bullet(WINDOW * w_field, BULLETLIST * lb, BULLET * b)
 {
-  BULLET * b_prev;
-  BULLET * b_cur;
+  BULLET * b_prev, * b_cur;
 
   write_log(LOG_VERBOSE, "Removing bullet %p\n", (void *) b);
   write_log(LOG_DEBUG, "x: %d; y: %d; lb->num: %d\n", b->x, b->y, lb->num);
@@ -326,7 +327,10 @@ rm_bullet(WINDOW * w_field, BULLETLIST * lb, BULLET * b)
       {
         b_prev->next = b_cur->next;
       }
+
+      b->next = NULL;
       free(b);
+      b = NULL;
       lb->num--;
       break;
     }
