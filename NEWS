@@ -2,3 +2,12 @@
 =====
 * First "release" of the "new" ASCII Combat
 * Implemented ... many cool things, I just don't remember them.
+
+0.2.0
+=====
+* Implement an options menu where the user can change his preferred keys as well
+  as his nickname
+* Store the configuration in a configuration file
+* Rearrange status windows, show more information to the user
+* Implement message windows with input control
+* Removed parts of deprecated code
