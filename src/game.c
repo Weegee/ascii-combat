@@ -97,7 +97,9 @@ ctrl_highscore(int p_score)
   write_log(LOG_VERBOSE, "Scores written to file %p at %s\n", (void *) f_sc,
             filename);
   fclose(f_sc);
+  f_sc = NULL;
   free(filename);
+  filename = NULL;
   return sc;
 }
 
@@ -180,12 +182,17 @@ quit_game(WINDOWLIST * lw, PLAYER * p)
   show_highscore(ctrl_highscore(p->score));
 
   free(t);
+  t = NULL;
   free(p);
+  p = NULL;
   free(lw);
+  lw = NULL;
   free(cfg);
+  cfg = NULL;
   endwin();
   write_log(LOG_INFO, "Quitting game, goodbye!\n");
   fclose(g_log);
+  g_log = NULL;
 }
 
 // Displays the current highscore
@@ -215,6 +222,7 @@ show_highscore(SCORES * sc)
   while (getch() != '\n');
   rm_win(w_scores);
   free(sc);
+  sc = NULL;
 }
 
 // Displays text in a message window (max. 160 characters)
@@ -418,6 +426,7 @@ show_options(void)
   for (int i = 0; i < (int) (sizeof(fld) / sizeof(fld[0])); i++)
   {
     free_field(fld[i]);
+    fld[i] = NULL;
   }
   set_inputmode(IM_KEYPRESS);
   rm_win(w_sub);

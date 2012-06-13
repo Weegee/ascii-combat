@@ -143,7 +143,9 @@ ctrl_config(void)
   f_cfg = fopen(filename, "w");
   fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
   fclose(f_cfg);
+  f_cfg = NULL;
   free(filename);
+  filename = NULL;
 }
 
 // Wrapper function for the menu driver
@@ -236,7 +238,9 @@ init_config(void)
             "cfg->prevw: %d; cfg->inv: %d\n", cfg->p_name, cfg->up, cfg->down,
             cfg->left, cfg->right, cfg->use, cfg->nextw, cfg->prevw, cfg->inv);
   fclose(f_cfg);
+  f_cfg = NULL;
   free(filename);
+  filename = NULL;
 }
 
 // Initiates ncurses, shows a splash screen
@@ -369,16 +373,15 @@ resume_game(int t_freeze)
 void
 rm_form(FORM * f)
 {
-  WINDOW * w_form, * w_sub;
+  WINDOW * w_form;
 
   w_form = form_win(f);
-  w_sub = form_sub(f);
   write_log(LOG_VERBOSE, "Removing form %p\n", (void *) f);
-  write_log(LOG_DEBUG, "w_form: %p; w_sub: %p\n", (void *) w_form,
-            (void *) w_sub);
+  write_log(LOG_DEBUG, "w_form: %p\n", (void *) w_form);
 
   unpost_form(f);
   free_form(f);
+  f = NULL;
   wrefresh(w_form);
 }
 
@@ -400,11 +403,14 @@ rm_menu(MENU * m)
 
   unpost_menu(m);
   free_menu(m);
+  m = NULL;
   for (int i = 0; i <= num; i++)
   {
     free_item(li[i]);
+    li[i] = NULL;
   }
   free(li);
+  li = NULL;
   wrefresh(w_menu);
   wrefresh(w_sub);
 }
@@ -417,6 +423,7 @@ rm_win(WINDOW * w)
   wclear(w);
   wrefresh(w);
   delwin(w);
+  w = NULL;
 }
 
 // Changes the ncurses user input mode
