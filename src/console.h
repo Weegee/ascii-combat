@@ -60,7 +60,7 @@ enum colourpairs
 
 enum entitytypes
 {
-  ENT_NOTHING, ENT_PLAYER, ENT_OBSTACLE, ENT_ENEMY, ENT_BULLET
+  ENT_NOTHING, ENT_PLAYER
 };
 
 typedef struct coordinates
@@ -110,7 +110,7 @@ void rm_form(FORM * f);
 void rm_menu(MENU * m);
 void rm_win(WINDOW * w);
 void set_inputmode(int mode);
-void set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, chtype ch);
+void set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, char ch);
 void set_winstr(WINDOW * w, int x, int y, attr_t a, short cp, const char * str,
                 ...);
 void write_log(int level, const char * str, ...);

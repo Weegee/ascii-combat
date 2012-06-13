@@ -128,7 +128,7 @@ create_win(int rows, int cols, int x, int y, bool box, chtype cp)
 
 // Stores the config struct to a config file
 void
-ctrl_config()
+ctrl_config(void)
 {
   FILE * f_cfg;
   char * filename;
@@ -138,6 +138,7 @@ ctrl_config()
   filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
   strcpy(filename, passwd->pw_dir);
   strncat(filename, "/.accfg", 7);
+
   write_log(LOG_VERBOSE, "Writing config to %s\n", filename);
   f_cfg = fopen(filename, "w");
   fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
@@ -166,6 +167,7 @@ ctrl_menu(WINDOW * w, MENU * m)
     }
     wrefresh(w);
   }
+
   return item_index(current_item(m));
 }
 
@@ -191,7 +193,7 @@ get_geometry(WINDOW * w)
 
 // Initialises the config struct
 void
-init_config()
+init_config(void)
 {
   FILE * f_cfg;
   char * filename;
@@ -202,6 +204,7 @@ init_config()
   filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
   strcpy(filename, passwd->pw_dir);
   strncat(filename, "/.accfg", 7);
+
   f_cfg = fopen(filename, "r");
   if (f_cfg == NULL)
   {
@@ -238,7 +241,7 @@ init_config()
 
 // Initiates ncurses, shows a splash screen
 void
-init_console()
+init_console(void)
 {
   COORDS co;
 
@@ -283,7 +286,7 @@ init_console()
 
 // Initialises the playing field by setting ENT_NOTHING on all fields
 void
-init_field()
+init_field(void)
 {
   memset(g_fld, ENT_NOTHING, sizeof(g_fld));
   write_log(LOG_VERBOSE, "Initialised the playing field\n");
@@ -306,10 +309,9 @@ init_timer(WINDOW * w_game)
   write_log(LOG_DEBUG, "%d.%d\n", (int) ct.tv_sec, ct.tv_usec);
 }
 
-/* Initialises the game/status windows showing the ammo, score, health and the
- * game itself */
+// Initialises the game/status windows
 WINDOWLIST *
-init_windows()
+init_windows(void)
 {
   WINDOWLIST * lw;
   COORDS co;
@@ -319,17 +321,14 @@ init_windows()
   lw->w_game = create_win(CON_TERMY - 2, CON_TERMX, 0, 0, true, CP_WHITEBLACK);
   lw->w_field = create_subwin(lw->w_game, CON_FIELDMAXY + 1, CON_FIELDMAXX + 1,
                               1, 1, false, CP_WHITEBLACK);
-
   lw->w_status = create_win(2, CON_TERMX, 0, CON_TERMY - 2, false,
                             CP_WHITEBLACK);
   co = get_geometry(lw->w_status);
 
   set_winstr(lw->w_status, 1, 0, A_BOLD, CP_WHITEBLACK, "EUS");
   set_winstr(lw->w_status, 1, 1, A_BOLD, CP_WHITEBLACK, "EXP");
-
   set_winstr(lw->w_status, co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK, "HEALTH");
   set_winstr(lw->w_status, co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "ARMOUR");
-
   set_winstr(lw->w_status, 2 * co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK,
              "WEAPON");
   set_winstr(lw->w_status, 2 * co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "AMMO");
@@ -342,7 +341,7 @@ init_windows()
 
 // Pauses the game by freezing the timer
 int
-pause_game()
+pause_game(void)
 {
   struct timeval ct;
   int t_freeze;
@@ -380,7 +379,6 @@ rm_form(FORM * f)
 
   unpost_form(f);
   free_form(f);
-
   wrefresh(w_form);
 }
 
@@ -454,9 +452,9 @@ set_inputmode(int mode)
 /* Prints a character in the given window at the specified position, then
  * changes its attributes */
 void
-set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, chtype ch)
+set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, char ch)
 {
-  mvwaddch(w, y, x, ch);
+  mvwaddch(w, y, x, (chtype) ch);
   mvwchgat(w, y, x, 1, a, cp, NULL);
   wrefresh(w);
 }
@@ -481,7 +479,6 @@ set_winstr(WINDOW * w, int x, int y, attr_t a, short cp, const char * str, ...)
   wrefresh(w);
   vw_printw(w, str, args);
   va_end(args);
-
   mvwchgat(w, y, x, len, a, cp, NULL);
   wrefresh(w);
 }
@@ -510,7 +507,6 @@ write_log(int level, const char * str, ...)
         prefix = "[?] ";
         break;
     }
-
     fputs(prefix, g_log);
     va_start(args, str);
     vfprintf(g_log, str, args);

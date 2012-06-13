@@ -19,7 +19,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "enemy.h"
+#include "player.h"
 
 enum scoreinfo
 {
@@ -28,19 +28,15 @@ enum scoreinfo
 
 typedef struct scores
 {
-  char name[P_MAXNAMELEN];
   int score;
+  char name[P_MAXNAMELEN];
 } SCORES;
 
 int cmp_scores(const void * sc1, const void * sc2);
-void ctrl_collision (WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
-                     OBSTACLELIST * lo, PLAYER * p);
 SCORES * ctrl_highscore (int p_score);
 void init_game(void);
-int loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le,
-              OBSTACLELIST * lo, PLAYER * p);
-void quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le,
-               OBSTACLELIST * lo, PLAYER * p);
+int loop_game(WINDOWLIST * lw, PLAYER * p);
+void quit_game(WINDOWLIST * lw, PLAYER * p);
 void show_highscore(SCORES * sc);
 void show_message(const char * msg, ...);
 void show_options(void);

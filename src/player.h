@@ -21,40 +21,20 @@
 
 #include "console.h"
 
-#define BU_PLDAMAGE 5
-
 enum directions
 {
   DIR_DOWN = 1, DIR_LEFT, DIR_RIGHT, DIR_UP
 };
 
-typedef struct bullet
-{
-  int x, y;
-  struct bullet * next;
-} BULLET;
-
-typedef struct bulletlist
-{
-  BULLET * head, * tail;
-  int num;
-} BULLETLIST;
-
 typedef struct player
 {
-  int ammo, hp, x, y, score;
+  int hp, x, y, score;
   bool quit;
-  chtype ch;
+  char ch;
 } PLAYER;
 
-void create_bullet(WINDOW * w_field, BULLETLIST * lb, PLAYER * p);
 PLAYER * create_player(WINDOW * w_game, WINDOW * w_field);
-void ctrl_bullets(WINDOW * w_field, BULLETLIST * lb);
-void ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p);
-void rm_bullet(WINDOW * w_field, BULLETLIST * lb, BULLET * b);
-void rm_bulletlist(BULLETLIST * lb);
-BULLETLIST * create_bulletlist(void);
-void mv_bullet(WINDOW * w_field, BULLET * b);
+void ctrl_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p);
 void mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir);
 void set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg);
 

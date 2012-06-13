@@ -1,4 +1,4 @@
-/* game.c: Main game events.
+/* game.c: Main game events and game control.
  * Copyright (C) 2011, 2012 Weegee
  *
  * This file is part of ASCII Combat.
@@ -39,183 +39,6 @@ cmp_scores(const void * sc1, const void * sc2)
   }
 }
 
-/* Controls all collisions between entities, starting with bullets, followed by
- * enemies and obstacles */
-void
-ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
-               OBSTACLELIST * lo, PLAYER * p)
-{
-  BULLET * b, * b_next;
-  ENEMY * e, * e_next;
-  OBSTACLE * o, * o_next;
-  bool rm_b, rm_e, rm_o;
-
-  // Bullet collision check
-  for (b = lb->head; b != NULL; b = b_next)
-  {
-    rm_b = false;
-    if (p->x == b->x && p->y == b->y)
-    {
-      write_log(LOG_INFO, "Player %p collided with bullet %p at (%d|%d)\n",
-                (void *) p, (void *) b, p->x, p->y);
-      rm_b = true;
-      set_player_dmg(w_field, p, BU_PLDAMAGE);
-    }
-
-    for (e = le->head; e != NULL; e = e_next)
-    {
-      rm_e = false;
-      if (b->x == e->x && b->y == e->y)
-      {
-        write_log(LOG_INFO, "Bullet %p collided with enemy %p at (%d|%d)\n",
-                  (void *) b, (void *) e, b->x, b->y);
-        rm_b = true;
-        set_enemy_dmg(w_field, e, BU_PLDAMAGE);
-
-        if (e->hp == 0)
-        {
-          switch (e->type)
-          {
-            case EN_REG:
-              p->score += EN_REGSCORE;
-              break;
-            case EN_KAM:
-              p->score += EN_KAMSCORE;
-              break;
-            default:
-              break;
-          }
-          rm_e = true;
-        }
-      }
-
-      e_next = e->next;
-      if (rm_e == true)
-      {
-        rm_enemy(w_field, le, e);
-      }
-    }
-
-    for (o = lo->head; o != NULL; o = o_next)
-    {
-      rm_o = false;
-      if (b->x == o->x && b->y == o->y)
-      {
-        write_log(LOG_INFO, "Bullet %p collided with obstacle %p at (%d|%d)\n",
-                  (void *) b, (void *) o, b->x, b->y);
-        rm_b = true;
-        set_obstacle_dmg(w_field, o, BU_PLDAMAGE);
-
-        if (o->hp == 0)
-        {
-          switch (o->type)
-          {
-            case OB_REG:
-              p->score += OB_REGSCORE;
-              break;
-            default:
-              break;
-          }
-          rm_o = true;
-        }
-      }
-
-      o_next = o->next;
-      if (rm_o == true)
-      {
-        rm_obstacle(w_field, lo, o);
-      }
-    }
-
-    b_next = b->next;
-    if (rm_b == true)
-    {
-      rm_bullet(w_field, lb, b);
-    }
-  }
-
-  // Enemy collision check
-  for (e = le->head; e != NULL; e = e_next)
-  {
-    rm_e = false;
-    if (p->x == e->x && p->y == e->y)
-    {
-      int dmg;
-
-      write_log(LOG_INFO, "Player %p collided with enemy %p at (%d|%d)\n",
-                (void *) p, (void *) e, p->x, p->y);
-      switch (e->type)
-      {
-        case EN_REG:
-          dmg = EN_REGDAMAGE;
-          break;
-        case EN_KAM:
-          dmg = EN_KAMDAMAGE;
-          break;
-        default:
-          dmg = false;
-          break;
-      }
-      rm_e = true;
-      set_player_dmg(w_field, p, dmg);
-    }
-
-    for (o = lo->head; o != NULL; o = o_next)
-    {
-      rm_o = false;
-      if (e->x == o->x && e->y == o->y)
-      {
-        write_log(LOG_INFO, "Enemy %p collided with obstacle %p at (%d|%d)\n",
-                  (void *) e, (void *) o, e->x, e->y);
-        rm_e = true;
-        rm_o = true;
-      }
-
-      o_next = o->next;
-      if (rm_o == true)
-      {
-        rm_obstacle(w_field, lo, o);
-      }
-    }
-
-    e_next = e->next;
-    if (rm_e == true)
-    {
-      rm_enemy(w_field, le, e);
-    }
-  }
-
-  // Obstacle collision check
-  for (o = lo->head; o != NULL; o = o_next)
-  {
-    rm_o = false;
-    if (p->x == o->x && p->y == o->y)
-    {
-      int dmg;
-
-      write_log(LOG_INFO, "Player %p collided with obstacle %p at (%d|%d)\n",
-                (void *) p, (void *) o, p->x, p->y);
-      switch (o->type)
-      {
-        case OB_REG:
-          dmg = OB_REGDAMAGE;
-          break;
-        default:
-          dmg = false;
-          break;
-      }
-      rm_o = true;
-      set_player_dmg(w_field, p, dmg);
-    }
-
-    o_next = o->next;
-    if (rm_o == true)
-    {
-      rm_obstacle(w_field, lo, o);
-    }
-  }
-}
-
 /* Checks if the current score is higher than the lowest score in the highscore
  * file, then prints the highscore to the file */
 SCORES *
@@ -228,12 +51,15 @@ ctrl_highscore(int p_score)
 
   passwd = getpwuid(getuid());
   sc = calloc(SCOREARRAYSIZE, sizeof(SCORES));
+  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
+  strcpy(filename, passwd->pw_dir);
+  strncat(filename, "/.acsc", 6);
+
   /* The highscore has 10 entries, the scores array has 11. The current score
    * and player name are copied to the last index of the array, which then gets
    * sorted by qsort. If the player's score is high enough, it will be in the
    * first 10 entries of the scores array and thus be written to the highscore
    * file, which only contains the first 10 entries of the scores array. */
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
   for (int i = 0; i < SCOREARRAYSIZE; i++)
   {
     // Initialises the array with "empty" default values
@@ -243,8 +69,6 @@ ctrl_highscore(int p_score)
   strcpy(sc[SCORESIZE].name, cfg->p_name);
   sc[SCORESIZE].score = p_score;
 
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.acsc", 6);
   f_sc = fopen(filename, "r+");
   if (f_sc == NULL)
   {
@@ -264,13 +88,14 @@ ctrl_highscore(int p_score)
       write_log(LOG_DEBUG, "sc[%d].name: %s; sc[%d].score: %d\n", i, sc[i].name,
                 i, sc[i].score);
     }
-    rewind(f_sc);
+
     qsort(sc, SCOREARRAYSIZE, sizeof(SCORES), cmp_scores);
+    rewind(f_sc);
     fwrite(sc, sizeof(SCORES), SCORESIZE, f_sc);
   }
+
   write_log(LOG_VERBOSE, "Scores written to file %p at %s\n", (void *) f_sc,
             filename);
-
   fclose(f_sc);
   free(filename);
   return sc;
@@ -278,7 +103,7 @@ ctrl_highscore(int p_score)
 
 // Initiates the game, shows a start screen
 void
-init_game()
+init_game(void)
 {
   WINDOW * w_splash;
 
@@ -308,13 +133,13 @@ init_game()
 
 // Main game loop, calls all control functions after a certain time
 int
-loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
-          PLAYER * p)
+loop_game(WINDOWLIST * lw, PLAYER * p)
 {
   struct timeval ct;
   long msec_elapsed;
-  int retval = 1;
+  int retval;
 
+  retval = 1;
   gettimeofday(&ct, NULL);
   msec_elapsed = (long) (((ct.tv_sec - t->start) * 1000) + (ct.tv_usec / 1000));
   if (msec_elapsed % 100 == 0 && msec_elapsed != t->msec_elapsed)
@@ -322,28 +147,14 @@ loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
     t->msec_elapsed = msec_elapsed;
     t->sec_elapsed = (int) (t->msec_elapsed / 1000);
     update_status_window(lw->w_status, p);
-    ctrl_enemy_kamikaze(lw->w_field, le, p);
-    ctrl_collision(lw->w_field, lb, le, lo, p);
 
-    if (msec_elapsed % 500 == 0)
+    if (msec_elapsed % 1000 == 0)
     {
-      ctrl_bullets(lw->w_field, lb);
-      ctrl_collision(lw->w_field, lb, le, lo, p);
-
-      if (msec_elapsed % 1000 == 0)
-      {
         ctrl_timer(lw->w_game);
-        ctrl_obstacles(lw->w_field, lo, t->sec_elapsed);
-        ctrl_collision(lw->w_field, lb, le, lo, p);
-        ctrl_enemy_spawn(lw->w_field, le, t->sec_elapsed);
-        ctrl_collision(lw->w_field, lb, le, lo, p);
-      }
     }
   }
 
-  ctrl_player(lw->w_game, lw->w_field, lb, p);
-  ctrl_collision(lw->w_field, lb, le, lo, p);
-
+  ctrl_player(lw->w_game, lw->w_field, p);
   if (p->hp == 0)
   {
     write_log(LOG_INFO, "Player is dead, stopping game ...\n");
@@ -354,20 +165,17 @@ loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
     write_log(LOG_INFO, "Player wants to quit, stopping ...\n");
     retval = 0;
   }
+
   return retval;
 }
 
 // Removes all entities, lists and windows in order to quit the game
 void
-quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
-          PLAYER * p)
+quit_game(WINDOWLIST * lw, PLAYER * p)
 {
   rm_win(lw->w_field);
   rm_win(lw->w_game);
   rm_win(lw->w_status);
-  rm_obstaclelist(lo);
-  rm_bulletlist(lb);
-  rm_enemylist(le);
 
   show_highscore(ctrl_highscore(p->score));
 
@@ -391,6 +199,7 @@ show_highscore(SCORES * sc)
   co = get_geometry(w_scores);
   set_winstr(w_scores, (co.x - (int) strlen("HIGHSCORE")) / 2, 1, A_BOLD,
              CP_WHITEBLACK, "HIGHSCORE");
+
   for (int i = 0; i < SCORESIZE; i++)
   {
     /* Start from the sixth line, looks better than from the third; also show
@@ -433,29 +242,27 @@ show_message(const char * msg, ...)
 
 // Shows an options dialogue
 void
-show_options()
+show_options(void)
 {
   WINDOW * w_opt, * w_sub;
   FIELD * fld[10];
   FORM * f;
   int ch;
   COORDS co;
-  char buf[P_MAXNAMELEN];
-  char keys[2];
+  char buf[P_MAXNAMELEN], keys[2];
 
   // 10 = number of config values
   for (int i = 0; i < 10; i++)
   {
-    write_log(LOG_DEBUG, "%d\n", i);
-    if (i == 0)
+    if (i == 0) // Player name
     {
       fld[0] = new_field(1, P_MAXNAMELEN - 1, 0, 20, 0, 0);
     }
-    else if (i == 9)
+    else if (i == 9) // Last field item has to be NULL
     {
       fld[i] = NULL;
     }
-    else
+    else // Keys
     {
       fld[i] = new_field(1, 1, i, 20, 0, 0);
     }
@@ -469,6 +276,7 @@ show_options()
     }
   }
 
+  // Fill all fields with their corresponding value
   set_field_buffer(fld[0], 0, cfg->p_name);
   keys[0] = cfg->up;
   keys[1] = '\0';
@@ -516,13 +324,6 @@ show_options()
   keypad(w_opt, true);
   while ((ch = wgetch(w_opt)) != '\n')
   {
-    char buf_keys[8];
-
-    for (int i = 1; i < 9; i++)
-    {
-      buf_keys[i - 1] = *field_buffer(fld[i], 0);
-    }
-
     switch (ch)
     {
       case KEY_LEFT:
@@ -568,9 +369,9 @@ show_options()
           bool key_set;
 
           key_set = false;
-          for (int i = 0; i < 8; i++)
+          for (int i = 1; i < 9; i++)
           {
-            if (ch == buf_keys[i])
+            if (ch == *field_buffer(fld[i], 0))
             {
               key_set = true;
             }
@@ -601,7 +402,7 @@ show_options()
     strtok(buf, " ");
     strcpy(cfg->p_name, buf);
   }
-  write_log(LOG_DEBUG, "cfg->p_name: %s; buf: %s;\n", cfg->p_name, buf);
+  write_log(LOG_DEBUG, "cfg->p_name: %s\n", cfg->p_name);
 
   // Store all action keys in the config struct
   cfg->up = *field_buffer(fld[1], 0);
@@ -649,8 +450,8 @@ show_prompt(const char * msg, ...)
   wrefresh(w_msg);
 
   set_inputmode(IM_KEYPRESS);
-
   t_freeze = pause_game();
+
   while (true)
   {
     int index;
@@ -677,7 +478,7 @@ show_prompt(const char * msg, ...)
 
 // Shows the menu screen
 void
-show_startmenu()
+show_startmenu(void)
 {
   WINDOW * w_menu, * w_sub;
   COORDS co;
@@ -701,7 +502,6 @@ show_startmenu()
              "ASCII Combat %s", INFO_VERSION);
 
   set_inputmode(IM_KEYPRESS);
-
   while (true)
   {
     int index;
@@ -775,7 +575,7 @@ update_status_window(WINDOW * w_status, PLAYER * p)
 
   mvwprintw(w_status, 0, 2 * co.x / 3 + 2, "WEAPON PLACEHOLDER");
   mvwchgat(w_status, 0, 2 * co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
-  mvwprintw(w_status, 1, 2 * co.x / 3 + 2, "AMMO %d", p->ammo);
+  mvwprintw(w_status, 1, 2 * co.x / 3 + 2, "AMMO PLACEHOLDER");
   mvwchgat(w_status, 1, 2 * co.x / 3 + 2, 4, A_BOLD, CP_WHITEBLACK, NULL);
   wrefresh(w_status);
 }
