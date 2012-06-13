@@ -60,7 +60,6 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
                 (void *) p, (void *) b, p->x, p->y);
       rm_b = true;
       set_player_dmg(w_field, p, BU_PLDAMAGE);
-      show_prompt("yahurr");
     }
 
     for (e = le->head; e != NULL; e = e_next)
