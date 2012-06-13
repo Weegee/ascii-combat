@@ -181,7 +181,12 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
   }
   else if (input == 'p') // Just for debug purposes, will be removed later on
   {
-    pause_game();
+    int t_freeze;
+
+    t_freeze = pause_game();
+    set_inputmode(IM_KEYPRESS);
+    while(getch() != '\n');
+    resume_game(t_freeze);
   }
   else if (input == ERR)
   {
@@ -264,25 +269,6 @@ mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
     set_winstr(w_game, 0, 0, A_NORMAL, CP_WHITEBLACK, "P: %02d|%02d", p->x,
                p->y);
   }
-}
-
-// Pauses the game by freezing the timer, just for testing purposes
-void
-pause_game()
-{
-  struct timeval ct;
-  int t_freeze;
-
-  set_inputmode(IM_KEYPRESS);
-  gettimeofday(&ct, NULL);
-  t_freeze = (int) ct.tv_sec;
-  write_log(LOG_INFO, "Game paused at %d\n", t_freeze);
-
-  while (getch() != ' ');
-  gettimeofday(&ct, NULL);
-  t->start = t->start + ((int) ct.tv_sec - t_freeze);
-  write_log(LOG_INFO, "Game resumed at %d\n", ct.tv_sec);
-  write_log(LOG_VERBOSE, "t->start: %d\n", t->start);
 }
 
 // Destroys a player bullet

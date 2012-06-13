@@ -60,6 +60,7 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
                 (void *) p, (void *) b, p->x, p->y);
       rm_b = true;
       set_player_dmg(w_field, p, BU_PLDAMAGE);
+      show_prompt("yahurr");
     }
 
     for (e = le->head; e != NULL; e = e_next)
@@ -74,8 +75,6 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
 
         if (e->hp == 0)
         {
-          int x, y;
-
           switch (e->type)
           {
             case EN_REG:
@@ -87,11 +86,7 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
             default:
               break;
           }
-
-          x = e->x;
-          y = e->y;
           rm_e = true;
-          set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
         }
       }
 
@@ -114,8 +109,6 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
 
         if (o->hp == 0)
         {
-          int x, y;
-
           switch (o->type)
           {
             case OB_REG:
@@ -124,11 +117,7 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
             default:
               break;
           }
-
-          x = o->x;
-          y = o->y;
           rm_o = true;
-          set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
         }
       }
 
@@ -177,15 +166,10 @@ ctrl_collision(WINDOW * w_field, BULLETLIST * lb, ENEMYLIST * le,
       rm_o = false;
       if (e->x == o->x && e->y == o->y)
       {
-        int x, y;
-
-        x = e->x;
-        y = e->y;
         write_log(LOG_INFO, "Enemy %p collided with obstacle %p at (%d|%d)\n",
-                  (void *) e, (void *) o, x, y);
+                  (void *) e, (void *) o, e->x, e->y);
         rm_e = true;
         rm_o = true;
-        set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
       }
 
       o_next = o->next;
@@ -338,9 +322,9 @@ loop_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
   {
     t->msec_elapsed = msec_elapsed;
     t->sec_elapsed = (int) (t->msec_elapsed / 1000);
+    update_status_window(lw->w_status, p);
     ctrl_enemy_kamikaze(lw->w_field, le, p);
     ctrl_collision(lw->w_field, lb, le, lo, p);
-    update_status_windows(lw, p);
 
     if (msec_elapsed % 500 == 0)
     {
@@ -381,9 +365,7 @@ quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le, OBSTACLELIST * lo,
 {
   rm_win(lw->w_field);
   rm_win(lw->w_game);
-  rm_win(lw->w_ammo);
-  rm_win(lw->w_hp);
-  rm_win(lw->w_score);
+  rm_win(lw->w_status);
   rm_obstaclelist(lo);
   rm_bulletlist(lb);
   rm_enemylist(le);
@@ -433,6 +415,7 @@ show_message(const char * msg, ...)
 {
   va_list args;
   WINDOW * w_msg;
+  int t_freeze;
 
   w_msg = create_win(2, CON_TERMX, 0, CON_TERMY - 2, false, CP_BLACKWHITE);
   va_start(args, msg);
@@ -441,7 +424,11 @@ show_message(const char * msg, ...)
   va_end(args);
 
   wrefresh(w_msg);
-  pause_game();
+  t_freeze = pause_game();
+  set_inputmode(IM_KEYPRESS);
+  while (getch() != '\n');
+  resume_game(t_freeze);
+  wbkgdset(w_msg, CP_WHITEBLACK);
   rm_win(w_msg);
 }
 
@@ -638,6 +625,57 @@ show_options()
   ctrl_config();
 }
 
+// show_message with input control (polar questions only)
+bool
+show_prompt(const char * msg, ...)
+{
+  MENU * m;
+  WINDOW * w_msg, * w_menu;
+  va_list args;
+  const char * items[2];
+  bool retval;
+  int t_freeze;
+
+  w_msg = create_win(2, 75, 0, CON_TERMY - 2, false, CP_BLACKWHITE);
+  w_menu = create_win(2, 5, 75, CON_TERMY - 2, false, CP_BLACKWHITE);
+  items[0] = " Yes ";
+  items[1] = " No";
+  m = create_menu(w_menu, w_menu, items, (int) (sizeof(items) / sizeof(char *)),
+                  CP_WHITERED, CP_REDWHITE);
+
+  va_start(args, msg);
+  wmove(w_msg, 0, 0);
+  vw_printw(w_msg, msg, args);
+  va_end(args);
+  wrefresh(w_msg);
+
+  set_inputmode(IM_KEYPRESS);
+
+  t_freeze = pause_game();
+  while (true)
+  {
+    int index;
+
+    index = ctrl_menu(w_menu, m);
+    if (index == 0)
+    {
+      retval = true;
+      break;
+    }
+    else
+    {
+      retval = false;
+      break;
+    }
+  }
+
+  resume_game(t_freeze);
+  rm_menu(m);
+  rm_win(w_menu);
+  rm_win(w_msg);
+  return retval;
+}
+
 // Shows the menu screen
 void
 show_startmenu()
@@ -700,24 +738,45 @@ show_startmenu()
   }
 }
 
-// Updates the status windows at the bottom of the screen
+// Updates the status window at the bottom of the screen
 void
-update_status_windows(WINDOWLIST * lw, PLAYER * p)
+update_status_window(WINDOW * w_status, PLAYER * p)
 {
   COORDS co;
+  short colour;
 
-  co = get_geometry(lw->w_ammo); // All status windows have the same geometry
-  wmove(lw->w_ammo, 1, 0);
-  wdeleteln(lw->w_ammo);
-  wmove(lw->w_hp, 1, 0);
-  wdeleteln(lw->w_hp);
-  wmove(lw->w_score, 1, 0);
-  wdeleteln(lw->w_score);
+  if (p->hp <= 66 && p->hp > 33)
+  {
+    colour = CP_YELLOWBLACK;
+  }
+  else if (p->hp <= 33)
+  {
+    colour = CP_REDBLACK;
+  }
+  else
+  {
+    colour = CP_GREENBLACK;
+  }
+  co = get_geometry(w_status);
 
-  set_winstr(lw->w_ammo, (co.x - get_intlen(p->ammo)) / 2, 1, A_NORMAL,
-             CP_WHITEBLACK, "%d", p->ammo);
-  set_winstr(lw->w_hp, (co.x - get_intlen(p->hp)) / 2, 1, A_NORMAL,
-             CP_WHITEBLACK, "%d", p->hp);
-  set_winstr(lw->w_score, (co.x - get_intlen(p->score)) / 2, 1, A_NORMAL,
-             CP_WHITEBLACK, "%d", p->score);
+  /* Prevent flickering by only calling wrefresh once (that's why we don't use
+   * set_winstr here) */
+  werase(w_status);
+  mvwprintw(w_status, 0, 1, "EUS PLACEHOLDER");
+  mvwchgat(w_status, 0, 1, 3, A_BOLD, CP_WHITEBLACK, NULL);
+  mvwprintw(w_status, 1, 1, "EXP PLACEHOLDER");
+  mvwchgat(w_status, 1, 1, 3, A_BOLD, CP_WHITEBLACK, NULL);
+
+  mvwprintw(w_status, 0, co.x / 3 + 2, "HEALTH %d", p->hp);
+  mvwchgat(w_status, 0, co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
+  mvwchgat(w_status, 0, co.x / 3 + 9, get_intlen(p->hp), A_NORMAL, colour,
+           NULL);
+  mvwprintw(w_status, 1, co.x / 3 + 2, "ARMOUR PLACEHOLDER");
+  mvwchgat(w_status, 1, co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
+
+  mvwprintw(w_status, 0, 2 * co.x / 3 + 2, "WEAPON PLACEHOLDER");
+  mvwchgat(w_status, 0, 2 * co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
+  mvwprintw(w_status, 1, 2 * co.x / 3 + 2, "AMMO %d", p->ammo);
+  mvwchgat(w_status, 1, 2 * co.x / 3 + 2, 4, A_BOLD, CP_WHITEBLACK, NULL);
+  wrefresh(w_status);
 }

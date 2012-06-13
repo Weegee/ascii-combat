@@ -271,6 +271,7 @@ init_console()
   init_pair(CP_MAGENTABLACK, COLOR_MAGENTA, COLOR_BLACK);
   init_pair(CP_REDWHITE, COLOR_RED, COLOR_WHITE);
   init_pair(CP_BLACKWHITE, COLOR_BLACK, COLOR_WHITE);
+  init_pair(CP_GREENBLACK, COLOR_GREEN, COLOR_BLACK);
 
   keypad(stdscr, true);
   cbreak();
@@ -315,30 +316,54 @@ init_windows()
 
   lw = malloc(sizeof(WINDOWLIST));
 
-  lw->w_game = create_win(CON_TERMY - 2, CON_TERMX, 0, 0, 1, CP_WHITEBLACK);
+  lw->w_game = create_win(CON_TERMY - 2, CON_TERMX, 0, 0, true, CP_WHITEBLACK);
   lw->w_field = create_subwin(lw->w_game, CON_FIELDMAXY + 1, CON_FIELDMAXX + 1,
-                              1, 1, 0, CP_WHITEBLACK);
+                              1, 1, false, CP_WHITEBLACK);
 
-  lw->w_score = create_win(2, CON_TERMX / 3, 0, CON_TERMY - 2, 0,
-                           CP_WHITEBLACK);
-  co = get_geometry(lw->w_score); // All status windows have the same geometry
-  set_winstr(lw->w_score, (co.x - (int) strlen("Score")) / 2, 0, A_BOLD,
-             CP_WHITEBLACK, "Score");
+  lw->w_status = create_win(2, CON_TERMX, 0, CON_TERMY - 2, false,
+                            CP_WHITEBLACK);
+  co = get_geometry(lw->w_status);
 
-  lw->w_hp = create_win(co.y, co.x, co.x, CON_TERMY - co.y, 0, CP_WHITEBLACK);
-  set_winstr(lw->w_hp, (co.x - (int) strlen("Health")) / 2, 0, A_BOLD,
-             CP_WHITEBLACK, "Health");
+  set_winstr(lw->w_status, 1, 0, A_BOLD, CP_WHITEBLACK, "EUS");
+  set_winstr(lw->w_status, 1, 1, A_BOLD, CP_WHITEBLACK, "EXP");
 
-  lw->w_ammo = create_win(co.y, co.x, 2 * co.x, CON_TERMY - 2, 0,
-                          CP_WHITEBLACK);
-  set_winstr(lw->w_ammo, (co.x - (int) strlen("Ammo")) / 2, 0, A_BOLD,
-             CP_WHITEBLACK, "Ammo");
+  set_winstr(lw->w_status, co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK, "HEALTH");
+  set_winstr(lw->w_status, co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "ARMOUR");
+
+  set_winstr(lw->w_status, 2 * co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK,
+             "WEAPON");
+  set_winstr(lw->w_status, 2 * co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "AMMO");
 
   write_log(LOG_DEBUG, "Initialised windows; lw: %p; w_game: %p; w_field: %p; "
-            "w_score: %p; w_hp: %p; w_ammo: %p\n", (void *) lw,
-            (void *) lw->w_game, (void *) lw->w_field, (void *) lw->w_score,
-            (void *) lw->w_hp, (void *) lw->w_ammo);
+            "w_status: %p\n", (void *) lw, (void *) lw->w_game,
+            (void *) lw->w_field, (void *) lw->w_status);
   return lw;
+}
+
+// Pauses the game by freezing the timer
+int
+pause_game()
+{
+  struct timeval ct;
+  int t_freeze;
+
+  set_inputmode(IM_KEYPRESS);
+  gettimeofday(&ct, NULL);
+  t_freeze = (int) ct.tv_sec;
+  write_log(LOG_INFO, "Game paused at %d\n", t_freeze);
+  return t_freeze;
+}
+
+// Resumes the game
+void
+resume_game(int t_freeze)
+{
+  struct timeval ct;
+
+  gettimeofday(&ct, NULL);
+  t->start = t->start + ((int) ct.tv_sec - t_freeze);
+  write_log(LOG_INFO, "Game resumed at %d\n", ct.tv_sec);
+  write_log(LOG_VERBOSE, "t->start: %d\n", t->start);
 }
 
 // Destroys a ncurses form
@@ -394,8 +419,6 @@ rm_win(WINDOW * w)
   wclear(w);
   wrefresh(w);
   delwin(w);
-  clear();
-  refresh();
 }
 
 // Changes the ncurses user input mode

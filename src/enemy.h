@@ -28,12 +28,12 @@
 
 enum enemyinfo
 {
-  EN_MAX = 100
+  EN_MAX = 3
 };
 
 enum enemy_kamikaze_stats
 {
-  EN_KAMDAMAGE = 0, EN_KAMHEALTH = 5, EN_KAMSCORE = 25, EN_KAMMAXPROB = 25
+  EN_KAMDAMAGE = 15, EN_KAMHEALTH = 5, EN_KAMSCORE = 25, EN_KAMMAXPROB = 25
 };
 
 enum enemy_regular_stats
@@ -57,7 +57,6 @@ typedef struct enemylist
 
 void create_enemy(WINDOW * w_field, ENEMYLIST * le, int type);
 ENEMYLIST * create_enemylist(void);
-void ctrl_enemy_collision(WINDOW * w_field, ENEMYLIST * le);
 void ctrl_enemy_kamikaze(WINDOW * w_field, ENEMYLIST * le, PLAYER * p);
 void ctrl_enemy_spawn(WINDOW * w_field, ENEMYLIST * le, int time_elapsed);
 void mv_enemy(WINDOW * w_field, ENEMY * e, int dir);

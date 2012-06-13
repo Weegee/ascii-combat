@@ -56,7 +56,6 @@ void rm_bulletlist(BULLETLIST * lb);
 BULLETLIST * create_bulletlist(void);
 void mv_bullet(WINDOW * w_field, BULLET * b);
 void mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir);
-void pause_game(void);
 void set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg);
 
 #endif

@@ -1,45 +1,3 @@
-0.2.0
-=====
-[X] Implement a file-based (key) configuration
-
-  The user should be able to configure his preferred keys either within the game
-  or by simply editing the configuration file, which eventually should be
-  human-readable (INI-style). However, for the sake of simplicity, a binary
-  format will be used until a human-readable file gets implemented.
-
-  The configurable key codes are: UP, DOWN, LEFT, RIGHT, FIRE/USE ITEM,
-  NEXT WEAPON, PREVIOUS WEAPON, TOGGLE INVENTORY
-
-  Also, the user should be able to change his nickname in the options dialogue.
-
-[ ] Rearrange status windows
-
-  The status windows should only show necessary pieces of information to the
-  player. The player position as well as the elapsed time should only be shown
-  for debugging purposes. Eventually, there will be three windows: The EUS
-  status (showing a progress bar, the absolute amount of EXP gained as well as
-  the amount of EXP needed for the next upgrade), the ship's state
-  (Health/Armour) and some pieces of information about your weapons (weapon in
-  use, available weapons, ammunition).
-
-[ ] Implement message windows
-
-  It's essential to let the player know that something important has happened or
-  is going to happen soon. For this very reason, message windows have to be
-  implemented: Every w_msg is a window at the bottom of the screen, two rows
-  high and 80 columns wide, overlapping the status windows, using a noticeable
-  color scheme (e. g. black text on a white background - in this case this is
-  very eye-catching!) and showing some portions of text which explain the
-  current situation to the player.
-
-  Also, sometimes the player has to make a decision: Should he leave the zone,
-  upgrade his weapons rather than the ship's shield and so on.
-  That's why the message windows have to include some sort of input control,
-  which gives the player the possibility to, for instance, choose one of several
-  answers.
-
-  [x] Find a way to stop the timer and resume it at the same position
-
 0.3.0
 =====
 [ ] Implement EXP
@@ -99,35 +57,8 @@
 
     [ ] Score calculation
     [ ] Gradual player stats improvement
-    [ ] Gradual enemy stats improvement
-    [ ] Gradual obstacle stats improvement
     [ ] Decreasing item spawn probability
-    [ ] Increasing entity spawn probability
 
-0.5.0
-=====
-[ ] Implement BURNING obstacles
-[ ] Implement POISONED obstacles
-[ ] Implement LIGHTNING obstacles
-
-0.6.0
-=====
-[ ] Implement REGULAR enemies
-[ ] Implement KAMIKAZE enemies
-[ ] Implement NINJA enemies
-
-0.7.0
-=====
-[ ] Implement stage bosses
-
-  [ ] Write a spawn function which disables spawning of other entities
-  [ ] Implement wormholes
-  [ ] Write a stage boss randomiser
-
-1.0.0
-=====
-[ ] Show a nice intro
-[ ] Nice documentation
-[ ] Polished code
-[ ] ????
-[ ] PROFIT
+0.5.0 - 1.0.0
+=============
+Add content (obstacles, enemies, ...). More details will be added later on.

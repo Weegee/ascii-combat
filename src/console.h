@@ -32,7 +32,7 @@
 
 #include "util.h"
 
-#define INFO_VERSION "0.2.0-dev"
+#define INFO_VERSION "0.2.0"
 // Player name has 20 characters
 #define P_MAXNAMELEN 21
 
@@ -55,7 +55,7 @@ enum inputmodes
 enum colourpairs
 {
   CP_WHITEBLACK, CP_WHITERED, CP_REDBLACK, CP_YELLOWBLACK, CP_MAGENTABLACK,
-  CP_REDWHITE, CP_BLACKWHITE
+  CP_REDWHITE, CP_BLACKWHITE, CP_GREENBLACK
 };
 
 enum entitytypes
@@ -70,7 +70,7 @@ typedef struct coordinates
 
 typedef struct windowlist
 {
-  WINDOW * w_ammo, * w_game, * w_field, * w_hp, * w_score;
+  WINDOW * w_game, * w_field, * w_status;
 } WINDOWLIST;
 
 typedef struct timer
@@ -104,6 +104,8 @@ void init_console(void);
 void init_field(void);
 void init_timer(WINDOW * w);
 WINDOWLIST * init_windows(void);
+int pause_game(void);
+void resume_game(int t_freeze);
 void rm_form(FORM * f);
 void rm_menu(MENU * m);
 void rm_win(WINDOW * w);

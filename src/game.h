@@ -44,7 +44,8 @@ void quit_game(WINDOWLIST * lw, BULLETLIST * lb, ENEMYLIST * le,
 void show_highscore(SCORES * sc);
 void show_message(const char * msg, ...);
 void show_options(void);
+bool show_prompt(const char * msg, ...);
 void show_startmenu(void);
-void update_status_windows(WINDOWLIST * lw, PLAYER * p);
+void update_status_window(WINDOW * w_status, PLAYER * p);
 
 #endif

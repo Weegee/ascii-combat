@@ -82,47 +82,6 @@ create_enemylist()
   return le;
 }
 
-// Checks for collisions between enemies
-/* TODO: This only works for two enemies at a time, as the, for example, third
- * enemy, which should have also been removed (because it was also involved in
- * the collision), doesn't "know" about the two other enemies (as it is the only
- * one left in the enemy list after the other ones have been removed). Maybe the
- * total number of enemies on the playing field should be used to rewrite a
- * better collision check function. However, it is more likely that the whole
- * collision check thingy needs to be rewritten ... */
-
-// Disabled because it's too buggy
-/*void
-ctrl_enemy_collision(WINDOW * w_field, ENEMYLIST * le)
-{
-  ENEMY * e1, * e2;
-
-  for (e1 = le->head; e1 != NULL; e1 = e1->next)
-  {
-    for (e2 = e1->next; e2 != NULL; e2 = e2->next)
-    {
-      if (e1->x == e2->x && e1->y == e2->y)
-      {
-        int x, y;
-
-        x = e1->x;
-        y = e1->y;
-        write_log(LOG_INFO, "Enemy %p collided with enemy %p at (%d|%d)\n",
-                  (void *) e1, (void *) e2, x, y);
-        rm_enemy(w_field, le, e2);
-        rm_enemy(w_field, le, e1);
-        / * TODO: The yellow '*' on the playing field is a nice way to show that
-         * a collision has occured, however it would be better if it just
-         * disappeared after one second. Might be annoying to find a better
-         * solution though since the collision checks are rather nested
-         * functions ... This TODO applies to all other occurences of the yellow
-         * '*'. * /
-        set_winchar(w_field, x, y, A_BOLD, CP_YELLOWBLACK, '*');
-      }
-    }
-  }
-}*/
-
 // Controls kamikaze enemies (kamikaze AI)
 void
 ctrl_enemy_kamikaze(WINDOW * w_field, ENEMYLIST * le, PLAYER * p)
@@ -215,12 +174,10 @@ ctrl_enemy_kamikaze(WINDOW * w_field, ENEMYLIST * le, PLAYER * p)
         if (dir)
         {
           mv_enemy(w_field, e, dir);
-          //ctrl_enemy_collision(w_field, le);
         }
-
-        e_next = e->next;
       }
     }
+    e_next = e->next;
   }
 }
 
