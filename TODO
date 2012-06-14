@@ -10,7 +10,7 @@
   [ ] Replace score values with EXP values
   [ ] Write an algorithm which converts EXP and other factors to a highscore
 
-[ ] Implement armour
+[X] Implement armour
 
   Armour is actually the ship's shield which helps to reduce the amount of
   damage your ship takes. It prevents the immediate destruction of the ship

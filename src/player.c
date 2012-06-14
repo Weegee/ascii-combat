@@ -31,6 +31,7 @@ create_player(WINDOW * w_game, WINDOW * w_field)
   p->y = CON_FIELDMAXY / 2;
   g_fld[p->x][p->y] = ENT_PLAYER;
   p->hp = 100;
+  p->armour = 100;
   p->score = 0;
   set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
 
@@ -108,7 +109,7 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p)
   }
   else if (input == cfg->use)
   {
-    // Shoot
+    set_player_dmg(w_field, p, 10); // Just for testing purposes
   }
   else if (input == '\n')
   {
@@ -173,10 +174,29 @@ mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
 void
 set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg)
 {
-  write_log(LOG_DEBUG, "Player %p receives %d damage; p->hp: %d\n", (void *) p,
-            p->hp);
-  p->hp -= dmg;
+  write_log(LOG_DEBUG, "Player %p receives %d damage; p->hp: %d; "
+            "p->armour: %d\n", (void *) p, dmg, p->hp, p->armour);
+  if (p->armour > 0)
+  {
+    if (p->armour < 2 * dmg / 3)
+    {
+      // Make sure the player receives all damage
+      p->armour -= 2 * dmg / 3;
+      dmg += p->armour;
+      p->hp -= dmg;
+    }
+    else
+    {
+      p->hp -= dmg / 3;
+      p->armour -= 2 * dmg / 3;
+    }
+  }
+  else
+  {
+    p->hp -= dmg;
+  }
   p->hp = p->hp < 0 ? 0 : p->hp;
-  write_log(LOG_DEBUG, "p->hp is now %d\n", p->hp);
+  p->armour = p->armour < 0 ? 0 : p->armour;
+  write_log(LOG_DEBUG, "New p->hp: %d; p->armour: %d\n", p->hp, p->armour);
   set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITERED, p->ch);
 }

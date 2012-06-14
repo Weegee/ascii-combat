@@ -28,7 +28,7 @@ enum directions
 
 typedef struct player
 {
-  int hp, x, y, score;
+  int hp, armour, x, y, score;
   bool quit;
   char ch;
 } PLAYER;

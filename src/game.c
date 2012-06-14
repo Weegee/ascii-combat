@@ -553,18 +553,6 @@ update_status_window(WINDOW * w_status, PLAYER * p)
   COORDS co;
   short colour;
 
-  if (p->hp <= 66 && p->hp > 33)
-  {
-    colour = CP_YELLOWBLACK;
-  }
-  else if (p->hp <= 33)
-  {
-    colour = CP_REDBLACK;
-  }
-  else
-  {
-    colour = CP_GREENBLACK;
-  }
   co = get_geometry(w_status);
 
   /* Prevent flickering by only calling wrefresh once (that's why we don't use
@@ -577,10 +565,36 @@ update_status_window(WINDOW * w_status, PLAYER * p)
 
   mvwprintw(w_status, 0, co.x / 3 + 2, "HEALTH %d", p->hp);
   mvwchgat(w_status, 0, co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
+  if (p->hp <= 66 && p->hp > 33)
+  {
+    colour = CP_YELLOWBLACK;
+  }
+  else if (p->hp <= 33)
+  {
+    colour = CP_REDBLACK;
+  }
+  else
+  {
+    colour = CP_GREENBLACK;
+  }
   mvwchgat(w_status, 0, co.x / 3 + 9, get_intlen(p->hp), A_NORMAL, colour,
            NULL);
-  mvwprintw(w_status, 1, co.x / 3 + 2, "ARMOUR PLACEHOLDER");
+  mvwprintw(w_status, 1, co.x / 3 + 2, "ARMOUR %d", p->armour);
   mvwchgat(w_status, 1, co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
+  if (p->armour <= 66 && p->armour > 33)
+  {
+    colour = CP_YELLOWBLACK;
+  }
+  else if (p->armour <= 33)
+  {
+    colour = CP_REDBLACK;
+  }
+  else
+  {
+    colour = CP_GREENBLACK;
+  }
+  mvwchgat(w_status, 1, co.x / 3 + 9, get_intlen(p->armour), A_NORMAL,
+           colour, NULL);
 
   mvwprintw(w_status, 0, 2 * co.x / 3 + 2, "WEAPON PLACEHOLDER");
   mvwchgat(w_status, 0, 2 * co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
