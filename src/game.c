@@ -72,21 +72,23 @@ ctrl_highscore(int p_score)
   f_sc = fopen(filename, "r+");
   if (f_sc == NULL)
   {
-    write_log(LOG_INFO, "Unable to open file %s, creating new one\n", filename);
+    write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
+              __func__, filename);
     f_sc = fopen(filename, "w+");
-    write_log(LOG_VERBOSE, "Created file %p\n", (void *) f_sc);
+    write_log(LOG_VERBOSE, "\tCreated file %p\n", (void *) f_sc);
 
     qsort(sc, SCOREARRAYSIZE, sizeof(SCORES), cmp_scores);
     fwrite(sc, sizeof(SCORES), SCORESIZE, f_sc);
   }
   else
   {
-    write_log(LOG_VERBOSE, "Reading scores from %s\n", filename);
+    write_log(LOG_VERBOSE, "%s:\n\tReading scores from %s\n", __func__,
+              filename);
     fread(sc, sizeof(SCORES), SCORESIZE, f_sc);
     for (int i = 0; i < SCOREARRAYSIZE; i++)
     {
-      write_log(LOG_DEBUG, "sc[%d].name: %s; sc[%d].score: %d\n", i, sc[i].name,
-                i, sc[i].score);
+      write_log(LOG_DEBUG, "\tsc[%d].name: %s - sc[%d].score: %d\n", i,
+                sc[i].name, i, sc[i].score);
     }
 
     qsort(sc, SCOREARRAYSIZE, sizeof(SCORES), cmp_scores);
@@ -94,7 +96,7 @@ ctrl_highscore(int p_score)
     fwrite(sc, sizeof(SCORES), SCORESIZE, f_sc);
   }
 
-  write_log(LOG_VERBOSE, "Scores written to file %p at %s\n", (void *) f_sc,
+  write_log(LOG_VERBOSE, "\tScores written to file %p (%s)\n", (void *) f_sc,
             filename);
   fclose(f_sc);
   f_sc = NULL;
@@ -157,14 +159,9 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
   }
 
   ctrl_player(lw->w_game, lw->w_field, p);
-  if (p->hp == 0)
-  {
-    write_log(LOG_INFO, "Player is dead, stopping game ...\n");
-    retval = 0;
-  }
   if (p->quit == true)
   {
-    write_log(LOG_INFO, "Player wants to quit, stopping ...\n");
+    write_log(LOG_INFO, "%s:\n\tPlayer wants to quit, stopping ...\n", __func__);
     retval = 0;
   }
 
@@ -190,7 +187,7 @@ quit_game(WINDOWLIST * lw, PLAYER * p)
   free(cfg);
   cfg = NULL;
   endwin();
-  write_log(LOG_INFO, "Quitting game, goodbye!\n");
+  write_log(LOG_INFO, "%s:\n\tQuitting game, goodbye!\n", __func__);
   fclose(g_log);
   g_log = NULL;
 }
@@ -410,7 +407,6 @@ show_options(void)
     strtok(buf, " ");
     strcpy(cfg->p_name, buf);
   }
-  write_log(LOG_DEBUG, "cfg->p_name: %s\n", cfg->p_name);
 
   // Store all action keys in the config struct
   cfg->up = *field_buffer(fld[1], 0);
@@ -541,6 +537,12 @@ show_startmenu(void)
       rm_win(w_sub);
       rm_win(w_menu);
       endwin();
+      free(t);
+      t = NULL;
+      free(cfg);
+      cfg = NULL;
+      fclose(g_log);
+      g_log = NULL;
       exit(EXIT_SUCCESS);
     }
   }

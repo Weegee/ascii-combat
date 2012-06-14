@@ -40,9 +40,9 @@ create_player(WINDOW * w_game, WINDOW * w_field)
     set_winstr(w_game, 0, 0, A_NORMAL, CP_WHITEBLACK, "P: %02d|%02d", p->x,
                p->y);
   }
-  write_log(LOG_VERBOSE, "Created player %p\n", (void *) p);
-  write_log(LOG_DEBUG, "x: %d; y: %d; name: %s; hp: %d; score: %d\n", p->x,
-            p->y, cfg->p_name, p->hp, p->score);
+  write_log(LOG_VERBOSE, "%s:\n\tCreated player %p\n", __func__, (void *) p);
+  write_log(LOG_DEBUG, "\tx: %d\n\ty: %d\n\tname: %s\n\thp: %d\n\tscore: %d\n",
+            p->x, p->y, cfg->p_name, p->hp, p->score);
   return p;
 }
 
@@ -131,14 +131,20 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p)
      * cpu usage. Thus, usleep is used to calm down the cpu. */
     usleep(500);
   }
+
+  if (p->hp == 0)
+  {
+    write_log(LOG_INFO, "%s:\n\tPlayer is dead, stopping game ...\n", __func__);
+    p->quit = true;
+  }
 }
 
 // Moves the player on the playing field
 void
 mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
 {
-  write_log(LOG_DEBUG, "Moving player %p; x: %d; y: %d\n", (void *) p, p->x,
-            p->y);
+  write_log(LOG_DEBUG, "%s:\n\tMoving player %p\n\tOld x: %d\n\tOld y: %d\n",
+            __func__, (void *) p, p->x, p->y);
   set_winchar(w_field, p->x, p->y, A_NORMAL, CP_WHITEBLACK, ' ');
   g_fld[p->x][p->y] = ENT_NOTHING;
 
@@ -167,6 +173,7 @@ mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
     set_winstr(w_game, 0, 0, A_NORMAL, CP_WHITEBLACK, "P: %02d|%02d", p->x,
                p->y);
   }
+  write_log(LOG_DEBUG, "\tNew x: %d\n\tNew y: %d\n", p->x, p->y);
 }
 
 // Sets player damage, shows a damage "animation"
@@ -174,8 +181,8 @@ mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
 void
 set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg)
 {
-  write_log(LOG_DEBUG, "Player %p receives %d damage; p->hp: %d; "
-            "p->armour: %d\n", (void *) p, dmg, p->hp, p->armour);
+  write_log(LOG_DEBUG, "%s:\n\tPlayer %p receives %d damage\n\tp->hp: %d"
+            "\n\tp->armour: %d\n", __func__, (void *) p, dmg, p->hp, p->armour);
   if (p->armour > 0)
   {
     if (p->armour < 2 * dmg / 3)
@@ -197,6 +204,6 @@ set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg)
   }
   p->hp = p->hp < 0 ? 0 : p->hp;
   p->armour = p->armour < 0 ? 0 : p->armour;
-  write_log(LOG_DEBUG, "New p->hp: %d; p->armour: %d\n", p->hp, p->armour);
+  write_log(LOG_DEBUG, "\tNew p->hp: %d\n\tp->armour: %d\n", p->hp, p->armour);
   set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITERED, p->ch);
 }
