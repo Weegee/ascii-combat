@@ -33,11 +33,11 @@ typedef struct scores
 } SCORES;
 
 int cmp_scores(const void * sc1, const void * sc2);
-SCORES * ctrl_highscore (int p_score);
+void ctrl_highscore (int p_exp);
 void init_game(void);
 int loop_game(WINDOWLIST * lw, PLAYER * p);
 void quit_game(WINDOWLIST * lw, PLAYER * p);
-void show_highscore(SCORES * sc);
+void show_highscore(void);
 void show_message(const char * msg, ...);
 void show_options(void);
 bool show_prompt(const char * msg, ...);

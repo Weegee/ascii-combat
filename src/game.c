@@ -41,13 +41,14 @@ cmp_scores(const void * sc1, const void * sc2)
 
 /* Checks if the current score is higher than the lowest score in the highscore
  * file, then prints the highscore to the file */
-SCORES *
-ctrl_highscore(int p_score)
+void
+ctrl_highscore(int p_exp)
 {
   char * filename;
   FILE * f_sc;
   SCORES * sc;
   struct passwd * passwd;
+  int p_score;
 
   passwd = getpwuid(getuid());
   sc = calloc(SCOREARRAYSIZE, sizeof(SCORES));
@@ -55,6 +56,7 @@ ctrl_highscore(int p_score)
   strcpy(filename, passwd->pw_dir);
   strncat(filename, "/.acsc", 6);
 
+  p_score = p_exp + t->sec_elapsed / 2;
   /* The highscore has 10 entries, the scores array has 11. The current score
    * and player name are copied to the last index of the array, which then gets
    * sorted by qsort. If the player's score is high enough, it will be in the
@@ -102,7 +104,8 @@ ctrl_highscore(int p_score)
   f_sc = NULL;
   free(filename);
   filename = NULL;
-  return sc;
+  free(sc);
+  sc = NULL;
 }
 
 // Initiates the game, shows a start screen
@@ -176,7 +179,8 @@ quit_game(WINDOWLIST * lw, PLAYER * p)
   rm_win(lw->w_game);
   rm_win(lw->w_status);
 
-  show_highscore(ctrl_highscore(p->score));
+  ctrl_highscore(p->exp);
+  show_highscore();
 
   free(p);
   p = NULL;
@@ -188,16 +192,44 @@ quit_game(WINDOWLIST * lw, PLAYER * p)
 
 // Displays the current highscore
 void
-show_highscore(SCORES * sc)
+show_highscore(void)
 {
   WINDOW * w_scores;
   COORDS co;
+  SCORES * sc;
+  FILE * f_sc;
+  char * filename;
+  struct passwd * passwd;
+
+  passwd = getpwuid(getuid());
+  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
+  strcpy(filename, passwd->pw_dir);
+  strncat(filename, "/.acsc", 6);
+  sc = calloc(SCORESIZE, sizeof(SCORES));
+
+  f_sc = fopen(filename, "r");
+  if (f_sc == NULL)
+  {
+    write_log(LOG_INFO, "%s:\n\tUnable to open file %s\n", __func__, filename);
+    // Fill the array with empty values, ignore the file error
+    for (int i = 0; i < SCORESIZE; i++)
+    {
+      strcpy(sc[i].name, "-");
+      sc[i].score = 0;
+    }
+  }
+  else
+  {
+    write_log(LOG_VERBOSE, "%s:\n\tReading scores from %s\n", __func__,
+              filename);
+    fread(sc, sizeof(SCORES), SCORESIZE, f_sc);
+    fclose(f_sc);
+  }
 
   w_scores = create_win(CON_TERMY, CON_TERMX, 0, 0, 1, CP_WHITEBLACK);
   co = get_geometry(w_scores);
   set_winstr(w_scores, (co.x - (int) strlen("HIGHSCORE")) / 2, 1, A_BOLD,
              CP_WHITEBLACK, "HIGHSCORE");
-
   for (int i = 0; i < SCORESIZE; i++)
   {
     /* Start from the sixth line, looks better than from the third; also show
@@ -212,6 +244,9 @@ show_highscore(SCORES * sc)
   set_inputmode(IM_KEYPRESS);
   while (getch() != '\n');
   rm_win(w_scores);
+  f_sc = NULL;
+  free(filename);
+  filename = NULL;
   free(sc);
   sc = NULL;
 }
@@ -523,7 +558,7 @@ show_startmenu(void)
     }
     else if (index == 1)
     {
-      show_highscore(ctrl_highscore(0));
+      show_highscore();
       redrawwin(w_menu);
       wrefresh(w_menu);
     }
