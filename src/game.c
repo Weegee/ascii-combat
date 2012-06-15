@@ -178,18 +178,12 @@ quit_game(WINDOWLIST * lw, PLAYER * p)
 
   show_highscore(ctrl_highscore(p->score));
 
-  free(t);
-  t = NULL;
   free(p);
   p = NULL;
   free(lw);
   lw = NULL;
-  free(cfg);
-  cfg = NULL;
-  endwin();
-  write_log(LOG_INFO, "%s:\n\tQuitting game, goodbye!\n", __func__);
-  fclose(g_log);
-  g_log = NULL;
+  free(t);
+  t = NULL;
 }
 
 // Displays the current highscore
@@ -514,10 +508,18 @@ show_startmenu(void)
     index = ctrl_menu(w_menu, m);
     if (index == 0)
     {
-      rm_menu(m);
-      rm_win(w_sub);
-      rm_win(w_menu);
-      break;
+      PLAYER * p;
+      WINDOWLIST * lw;
+
+      init_field();
+      lw = init_windows();
+      p = create_player(lw->w_game, lw->w_field);
+      init_timer(lw->w_game);
+      while (loop_game(lw, p));
+      quit_game(lw, p);
+
+      redrawwin(w_menu);
+      wrefresh(w_menu);
     }
     else if (index == 1)
     {
@@ -536,14 +538,7 @@ show_startmenu(void)
       rm_menu(m);
       rm_win(w_sub);
       rm_win(w_menu);
-      endwin();
-      free(t);
-      t = NULL;
-      free(cfg);
-      cfg = NULL;
-      fclose(g_log);
-      g_log = NULL;
-      exit(EXIT_SUCCESS);
+      break;
     }
   }
 }

@@ -33,6 +33,7 @@ create_player(WINDOW * w_game, WINDOW * w_field)
   p->hp = 100;
   p->armour = 100;
   p->score = 0;
+  p->exp = 0;
   set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
 
   if (LOG_LEVEL >= LOG_VERBOSE)

@@ -20,9 +20,6 @@
 
 int main(void)
 {
-  PLAYER * p;
-  WINDOWLIST * lw;
-
   // Random numbers
   srand((unsigned)time(NULL));
 
@@ -34,12 +31,12 @@ int main(void)
   init_console();
   init_config();
   init_game();
-  init_field();
-  lw = init_windows();
-  p = create_player(lw->w_game, lw->w_field);
-  init_timer(lw->w_game);
-  while (loop_game(lw, p));
 
-  quit_game(lw, p);
+  endwin();
+  free(cfg);
+  cfg = NULL;
+  write_log(LOG_INFO, "%s:\n\tQuitting game, goodbye!\n", __func__);
+  fclose(g_log);
+  g_log = NULL;
   return EXIT_SUCCESS;
 }
