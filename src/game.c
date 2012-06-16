@@ -161,7 +161,7 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
     }
   }
 
-  ctrl_player(lw->w_game, lw->w_field, p);
+  ctrl_player(lw, p);
   if (p->quit == true)
   {
     write_log(LOG_INFO, "%s:\n\tPlayer wants to quit, stopping ...\n", __func__);
@@ -548,7 +548,7 @@ show_startmenu(void)
 
       init_field();
       lw = init_windows();
-      p = create_player(lw->w_game, lw->w_field);
+      p = create_player(lw);
       init_timer(lw->w_game);
       while (loop_game(lw, p));
       quit_game(lw, p);

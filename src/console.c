@@ -284,6 +284,7 @@ init_console(void)
   init_pair(CP_REDWHITE, COLOR_RED, COLOR_WHITE);
   init_pair(CP_BLACKWHITE, COLOR_BLACK, COLOR_WHITE);
   init_pair(CP_GREENBLACK, COLOR_GREEN, COLOR_BLACK);
+  init_pair(CP_WHITEBLUE, COLOR_WHITE, COLOR_BLUE);
 
   keypad(stdscr, true);
   cbreak();

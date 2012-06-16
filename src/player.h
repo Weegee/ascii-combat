@@ -33,9 +33,10 @@ typedef struct player
   char ch;
 } PLAYER;
 
-PLAYER * create_player(WINDOW * w_game, WINDOW * w_field);
-void ctrl_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p);
-void mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir);
+PLAYER * create_player(WINDOWLIST * lw);
+void ctrl_player(WINDOWLIST * lw, PLAYER * p);
+void mv_player(WINDOWLIST * lw, PLAYER * p, int dir);
 void set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg);
+void show_inventory(void);
 
 #endif
