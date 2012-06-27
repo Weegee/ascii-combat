@@ -31,12 +31,6 @@ int main(void)
   init_console();
   init_config();
   init_game();
-
-  endwin();
-  free(cfg);
-  cfg = NULL;
-  write_log(LOG_INFO, "%s:\n\tQuitting game, goodbye!\n", __func__);
-  fclose(g_log);
-  g_log = NULL;
+  exit_game();
   return EXIT_SUCCESS;
 }

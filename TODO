@@ -21,7 +21,7 @@
 
   [X] Create a new w_inv with information about weapons and items
 
-[ ] Implement stages
+[X] Implement stages
 
   Stages are what one might call levels. Every stage is a part of the game, in
   which the player is able to gain EXP. At the end of every stage there is a

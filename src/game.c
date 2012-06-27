@@ -108,7 +108,19 @@ ctrl_highscore(int p_exp)
   sc = NULL;
 }
 
-// Initiates the game, shows a start screen
+// Clears all essential data (config, log file), ends ncurses
+void
+exit_game(void)
+{
+  endwin();
+  free(cfg);
+  cfg = NULL;
+  write_log(LOG_INFO, "%s:\n\tQuitting game, goodbye!\n", __func__);
+  fclose(g_log);
+  g_log = NULL;
+}
+
+// Shows the start screen, then switches to the main menu
 void
 init_game(void)
 {
@@ -157,7 +169,14 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
 
     if (msec_elapsed % 1000 == 0)
     {
-        ctrl_timer(lw->w_game);
+      ctrl_timer(lw->w_game);
+
+      if (msec_elapsed % 10000 == 0)
+      {
+        p->stage++;
+        set_winstr(lw->w_game, 10, 0, A_NORMAL, CP_WHITEBLACK, "S: %02d",
+                   p->stage);
+      }
     }
   }
 
@@ -171,7 +190,7 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
   return retval;
 }
 
-// Removes all entities, lists and windows in order to quit the game
+// Removes all entities, lists and windows
 void
 quit_game(WINDOWLIST * lw, PLAYER * p)
 {
@@ -188,6 +207,23 @@ quit_game(WINDOWLIST * lw, PLAYER * p)
   lw = NULL;
   free(t);
   t = NULL;
+}
+
+// Initialises the playing field and all entities
+void
+run_game(void)
+{
+  PLAYER * p;
+  WINDOWLIST * lw;
+
+  init_field();
+  lw = init_windows();
+  p = create_player(lw);
+  p->stage = 1;
+  set_winstr(lw->w_game, 10, 0, A_NORMAL, CP_WHITEBLACK, "S: %02d", p->stage);
+  init_timer(lw->w_game);
+  while (loop_game(lw, p));
+  quit_game(lw, p);
 }
 
 // Displays the current highscore
@@ -543,16 +579,7 @@ show_startmenu(void)
     index = ctrl_menu(w_menu, m);
     if (index == 0)
     {
-      PLAYER * p;
-      WINDOWLIST * lw;
-
-      init_field();
-      lw = init_windows();
-      p = create_player(lw);
-      init_timer(lw->w_game);
-      while (loop_game(lw, p));
-      quit_game(lw, p);
-
+      run_game();
       redrawwin(w_menu);
       wrefresh(w_menu);
     }
@@ -630,7 +657,7 @@ update_status_window(WINDOW * w_status, PLAYER * p)
 
   mvwprintw(w_status, 0, 2 * co.x / 3 + 2, "WEAPON PLACEHOLDER");
   mvwchgat(w_status, 0, 2 * co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
-  mvwprintw(w_status, 1, 2 * co.x / 3 + 2, "AMMO PLACEHOLDER");
-  mvwchgat(w_status, 1, 2 * co.x / 3 + 2, 4, A_BOLD, CP_WHITEBLACK, NULL);
+  mvwprintw(w_status, 1, 2 * co.x / 3 + 4, "AMMO PLACEHOLDER");
+  mvwchgat(w_status, 1, 2 * co.x / 3 + 4, 4, A_BOLD, CP_WHITEBLACK, NULL);
   wrefresh(w_status);
 }

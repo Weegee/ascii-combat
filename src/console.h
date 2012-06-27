@@ -33,7 +33,7 @@
 #include "util.h"
 
 #define INFO_VERSION "0.3.0-dev"
-// Player name has 20 characters
+// Player name has 20 characters + \0
 #define P_MAXNAMELEN 21
 
 enum loglevel

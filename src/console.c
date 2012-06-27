@@ -181,7 +181,7 @@ ctrl_timer(WINDOW * w_game)
 {
   if (LOG_LEVEL >= LOG_VERBOSE)
   {
-    set_winstr(w_game, 10, 0, A_NORMAL, CP_WHITEBLACK, "T: %d", t->sec_elapsed);
+    set_winstr(w_game, 17, 0, A_NORMAL, CP_WHITEBLACK, "T: %d", t->sec_elapsed);
   }
 }
 
@@ -341,7 +341,7 @@ init_windows(void)
   set_winstr(lw->w_status, co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "ARMOUR");
   set_winstr(lw->w_status, 2 * co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK,
              "WEAPON");
-  set_winstr(lw->w_status, 2 * co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "AMMO");
+  set_winstr(lw->w_status, 2 * co.x / 3 + 4, 1, A_BOLD, CP_WHITEBLACK, "AMMO");
 
   write_log(LOG_DEBUG, "%s:\n\tInitialised windows\n\tlw: %p\n\tw_game: %p"
             "\n\tw_field: %p\n\tw_status: %p\n", __func__, (void *) lw,
