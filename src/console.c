@@ -37,8 +37,8 @@ create_form(WINDOW * w_form, WINDOW * w_sub, FIELD ** fld)
   post_form(f);
   wrefresh(w_form);
 
-  write_log(LOG_VERBOSE, "Created form %p\n", (void *) f);
-  write_log(LOG_DEBUG, "fld: %p; w_form: %p; w_sub: %p\n", (void *) fld,
+  write_log(LOG_VERBOSE, "%s:\n\tCreated form %p\n", __func__, (void *) f);
+  write_log(LOG_DEBUG, "\tfld: %p\n\tw_form: %p\n\tw_sub: %p\n", (void *) fld,
            (void *) w_form, (void *) w_sub);
   return f;
 }
@@ -68,10 +68,10 @@ create_menu(WINDOW * w_menu, WINDOW * w_sub, const char ** items, int num,
   post_menu(m);
 
   wrefresh(w_menu);
-  write_log(LOG_VERBOSE, "Created menu %p\n", (void *) m);
-  write_log(LOG_DEBUG, "w_menu: %p; w_sub: %p; li: %p; num: %d; cp_sel: %d; "
-            "cp_unsel: %d\n", (void *) w_menu, (void *) w_sub, (void *) li, num,
-            cp_sel, cp_unsel);
+  write_log(LOG_VERBOSE, "%s:\n\tCreated menu %p\n", __func__, (void *) m);
+  write_log(LOG_DEBUG, "\tw_menu: %p\n\tw_sub: %p\n\tli: %p\n\tnum: %d"
+            "\n\tcp_sel: %d\n\tcp_unsel: %d\n", (void *) w_menu, (void *) w_sub,
+            (void *) li, num, cp_sel, cp_unsel);
   return m;
 }
 
@@ -83,9 +83,11 @@ create_subwin(WINDOW * w_parent, int rows, int cols, int x, int y, bool box,
   WINDOW * w_sub;
 
   w_sub = derwin(w_parent, rows, cols, y, x);
-  write_log(LOG_VERBOSE, "Created sub window %p\n", (void *) w_sub);
-  write_log(LOG_DEBUG, "w_parent: %p; rows: %d; cols: %d; x: %d; y: %d; "
-            "box: %d; cp: %d\n", (void *) w_parent, rows, cols, x, y, box, cp);
+  write_log(LOG_VERBOSE, "%s:\n\tCreated sub window %p\n", __func__,
+            (void *) w_sub);
+  write_log(LOG_DEBUG, "\tw_parent: %p\n\trows: %d\n\tcols: %d\n\tx: %d"
+            "\n\ty: %d\n\tbox: %d\n\tcp: %d\n", (void *) w_parent, rows, cols,
+            x, y, box, cp);
   wbkgd(w_sub, COLOR_PAIR(cp));
   if (box)
   {
@@ -109,9 +111,9 @@ create_win(int rows, int cols, int x, int y, bool box, chtype cp)
   WINDOW * w;
 
   w = newwin(rows, cols, y, x);
-  write_log(LOG_VERBOSE, "Created window %p\n", (void *) w);
-  write_log(LOG_DEBUG, "rows: %d; cols: %d; x: %d; y: %d; box: %d; cp: %d\n",
-            rows, cols, x, y, box, cp);
+  write_log(LOG_VERBOSE, "%s:\n\tCreated window %p\n", __func__, (void *) w);
+  write_log(LOG_DEBUG, "\trows: %d\n\tcols: %d\n\tx: %d\n\ty: %d\n\tbox: %d"
+            "\n\tcp: %d\n", rows, cols, x, y, box, cp);
   wbkgd(w, COLOR_PAIR(cp));
   if (box)
   {
@@ -128,7 +130,7 @@ create_win(int rows, int cols, int x, int y, bool box, chtype cp)
 
 // Stores the config struct to a config file
 void
-ctrl_config()
+ctrl_config(void)
 {
   FILE * f_cfg;
   char * filename;
@@ -138,11 +140,14 @@ ctrl_config()
   filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
   strcpy(filename, passwd->pw_dir);
   strncat(filename, "/.accfg", 7);
-  write_log(LOG_VERBOSE, "Writing config to %s\n", filename);
+
+  write_log(LOG_VERBOSE, "%s:\n\tWriting config to %s\n", __func__, filename);
   f_cfg = fopen(filename, "w");
   fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
   fclose(f_cfg);
+  f_cfg = NULL;
   free(filename);
+  filename = NULL;
 }
 
 // Wrapper function for the menu driver
@@ -166,6 +171,7 @@ ctrl_menu(WINDOW * w, MENU * m)
     }
     wrefresh(w);
   }
+
   return item_index(current_item(m));
 }
 
@@ -175,7 +181,7 @@ ctrl_timer(WINDOW * w_game)
 {
   if (LOG_LEVEL >= LOG_VERBOSE)
   {
-    set_winstr(w_game, 10, 0, A_NORMAL, CP_WHITEBLACK, "T: %d", t->sec_elapsed);
+    set_winstr(w_game, 17, 0, A_NORMAL, CP_WHITEBLACK, "T: %d", t->sec_elapsed);
   }
 }
 
@@ -191,7 +197,7 @@ get_geometry(WINDOW * w)
 
 // Initialises the config struct
 void
-init_config()
+init_config(void)
 {
   FILE * f_cfg;
   char * filename;
@@ -202,13 +208,15 @@ init_config()
   filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
   strcpy(filename, passwd->pw_dir);
   strncat(filename, "/.accfg", 7);
+
   f_cfg = fopen(filename, "r");
   if (f_cfg == NULL)
   {
-    write_log(LOG_INFO, "Unable to open file %s, creating new one\n", filename);
+    write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
+              __func__, filename);
     f_cfg = fopen(filename, "w");
-    write_log(LOG_VERBOSE, "Created file %p\n", (void *) f_cfg);
-    write_log(LOG_VERBOSE, "Writing default config to %s\n", filename);
+    write_log(LOG_VERBOSE, "\tCreated file %p\ntWriting default config to %s\n",
+              (void *) f_cfg, filename);
 
     strcpy(cfg->p_name, "Unknown");
     cfg->up = 'w';
@@ -224,21 +232,25 @@ init_config()
   }
   else
   {
-    write_log(LOG_VERBOSE, "Reading configuration from %s\n", filename);
+    write_log(LOG_VERBOSE, "%s:\n\tReading configuration from %s\n", __func__,
+              filename);
     fread(cfg, sizeof(CONFIG), 1, f_cfg);
   }
 
-  write_log(LOG_DEBUG, "cfg->p_name: %s; cfg->up: %d; cfg->down: %d; "
-            "cfg->left: %d; cfg->right: %d; cfg->use: %d; cfg->nextw: %d; "
-            "cfg->prevw: %d; cfg->inv: %d\n", cfg->p_name, cfg->up, cfg->down,
-            cfg->left, cfg->right, cfg->use, cfg->nextw, cfg->prevw, cfg->inv);
+  write_log(LOG_DEBUG, "\tcfg->p_name: %s\n\tcfg->up: %d\n\tcfg->down: %d"
+            "\n\tcfg->left: %d\n\tcfg->right: %d\n\tcfg->use: %d"
+            "\n\tcfg->nextw: %d\n\tcfg->prevw: %d\n\tcfg->inv: %d\n",
+            cfg->p_name, cfg->up, cfg->down, cfg->left, cfg->right, cfg->use,
+            cfg->nextw, cfg->prevw, cfg->inv);
   fclose(f_cfg);
+  f_cfg = NULL;
   free(filename);
+  filename = NULL;
 }
 
 // Initiates ncurses, shows a splash screen
 void
-init_console()
+init_console(void)
 {
   COORDS co;
 
@@ -272,21 +284,22 @@ init_console()
   init_pair(CP_REDWHITE, COLOR_RED, COLOR_WHITE);
   init_pair(CP_BLACKWHITE, COLOR_BLACK, COLOR_WHITE);
   init_pair(CP_GREENBLACK, COLOR_GREEN, COLOR_BLACK);
+  init_pair(CP_WHITEBLUE, COLOR_WHITE, COLOR_BLUE);
 
   keypad(stdscr, true);
   cbreak();
 
   refresh();
   g_log = fopen("debug.log", "w");
-  write_log(LOG_INFO, "Initialised ncurses\n");
+  write_log(LOG_INFO, "%s:\n\tInitialised ncurses\n", __func__);
 }
 
 // Initialises the playing field by setting ENT_NOTHING on all fields
 void
-init_field()
+init_field(void)
 {
   memset(g_fld, ENT_NOTHING, sizeof(g_fld));
-  write_log(LOG_VERBOSE, "Initialised the playing field\n");
+  write_log(LOG_VERBOSE, "%s:\n\tInitialised the playing field\n", __func__);
 }
 
 // Initialises the timer
@@ -302,14 +315,13 @@ init_timer(WINDOW * w_game)
   t->sec_elapsed = 0;
 
   ctrl_timer(w_game);
-  write_log(LOG_INFO, "Game started at %d\n", t->start);
-  write_log(LOG_DEBUG, "%d.%d\n", (int) ct.tv_sec, ct.tv_usec);
+  write_log(LOG_INFO, "%s:\n\tGame started at %d\n", __func__, t->start);
+  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
 }
 
-/* Initialises the game/status windows showing the ammo, score, health and the
- * game itself */
+// Initialises the game/status windows
 WINDOWLIST *
-init_windows()
+init_windows(void)
 {
   WINDOWLIST * lw;
   COORDS co;
@@ -319,30 +331,27 @@ init_windows()
   lw->w_game = create_win(CON_TERMY - 2, CON_TERMX, 0, 0, true, CP_WHITEBLACK);
   lw->w_field = create_subwin(lw->w_game, CON_FIELDMAXY + 1, CON_FIELDMAXX + 1,
                               1, 1, false, CP_WHITEBLACK);
-
   lw->w_status = create_win(2, CON_TERMX, 0, CON_TERMY - 2, false,
                             CP_WHITEBLACK);
   co = get_geometry(lw->w_status);
 
   set_winstr(lw->w_status, 1, 0, A_BOLD, CP_WHITEBLACK, "EUS");
   set_winstr(lw->w_status, 1, 1, A_BOLD, CP_WHITEBLACK, "EXP");
-
   set_winstr(lw->w_status, co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK, "HEALTH");
   set_winstr(lw->w_status, co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "ARMOUR");
-
   set_winstr(lw->w_status, 2 * co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK,
              "WEAPON");
-  set_winstr(lw->w_status, 2 * co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "AMMO");
+  set_winstr(lw->w_status, 2 * co.x / 3 + 4, 1, A_BOLD, CP_WHITEBLACK, "AMMO");
 
-  write_log(LOG_DEBUG, "Initialised windows; lw: %p; w_game: %p; w_field: %p; "
-            "w_status: %p\n", (void *) lw, (void *) lw->w_game,
-            (void *) lw->w_field, (void *) lw->w_status);
+  write_log(LOG_DEBUG, "%s:\n\tInitialised windows\n\tlw: %p\n\tw_game: %p"
+            "\n\tw_field: %p\n\tw_status: %p\n", __func__, (void *) lw,
+            (void *) lw->w_game, (void *) lw->w_field, (void *) lw->w_status);
   return lw;
 }
 
 // Pauses the game by freezing the timer
 int
-pause_game()
+pause_game(void)
 {
   struct timeval ct;
   int t_freeze;
@@ -350,7 +359,8 @@ pause_game()
   set_inputmode(IM_KEYPRESS);
   gettimeofday(&ct, NULL);
   t_freeze = (int) ct.tv_sec;
-  write_log(LOG_INFO, "Game paused at %d\n", t_freeze);
+  write_log(LOG_INFO, "%s:\n\tGame paused at %d\n", __func__, t_freeze);
+  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
   return t_freeze;
 }
 
@@ -362,25 +372,24 @@ resume_game(int t_freeze)
 
   gettimeofday(&ct, NULL);
   t->start = t->start + ((int) ct.tv_sec - t_freeze);
-  write_log(LOG_INFO, "Game resumed at %d\n", ct.tv_sec);
-  write_log(LOG_VERBOSE, "t->start: %d\n", t->start);
+  write_log(LOG_INFO, "%s:\n\tGame resumed at %d\n", __func__, ct.tv_sec);
+  write_log(LOG_VERBOSE, "\tt->start: %d\n", t->start);
+  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
 }
 
 // Destroys a ncurses form
 void
 rm_form(FORM * f)
 {
-  WINDOW * w_form, * w_sub;
+  WINDOW * w_form;
 
   w_form = form_win(f);
-  w_sub = form_sub(f);
-  write_log(LOG_VERBOSE, "Removing form %p\n", (void *) f);
-  write_log(LOG_DEBUG, "w_form: %p; w_sub: %p\n", (void *) w_form,
-            (void *) w_sub);
+  write_log(LOG_VERBOSE, "%s:\n\tRemoving form %p\n", __func__, (void *) f);
+  write_log(LOG_DEBUG, "\tw_form: %p\n", (void *) w_form);
 
   unpost_form(f);
   free_form(f);
-
+  f = NULL;
   wrefresh(w_form);
 }
 
@@ -396,17 +405,20 @@ rm_menu(MENU * m)
   w_menu = menu_win(m);
   w_sub = menu_sub(m);
   num = item_count(m);
-  write_log(LOG_VERBOSE, "Removing menu %p\n", (void *) m);
-  write_log(LOG_DEBUG, "li: %p; w_menu: %p; w_sub: %p; num: %d\n", (void *) m,
-            (void *) li, (void *) w_menu, (void *) w_sub, num);
+  write_log(LOG_VERBOSE, "%s:\n\tRemoving menu %p\n", __func__, (void *) m);
+  write_log(LOG_DEBUG, "\tli: %p\n\tw_menu: %p\n\tw_sub: %p\n\tnum: %d\n",
+            (void *) m, (void *) li, (void *) w_menu, (void *) w_sub, num);
 
   unpost_menu(m);
   free_menu(m);
+  m = NULL;
   for (int i = 0; i <= num; i++)
   {
     free_item(li[i]);
+    li[i] = NULL;
   }
   free(li);
+  li = NULL;
   wrefresh(w_menu);
   wrefresh(w_sub);
 }
@@ -415,10 +427,11 @@ rm_menu(MENU * m)
 void
 rm_win(WINDOW * w)
 {
-  write_log(LOG_VERBOSE, "Removing window %p\n", (void *) w);
+  write_log(LOG_VERBOSE, "%s:\n\tRemoving window %p\n", __func__, (void *) w);
   wclear(w);
   wrefresh(w);
   delwin(w);
+  w = NULL;
 }
 
 // Changes the ncurses user input mode
@@ -454,9 +467,9 @@ set_inputmode(int mode)
 /* Prints a character in the given window at the specified position, then
  * changes its attributes */
 void
-set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, chtype ch)
+set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, char ch)
 {
-  mvwaddch(w, y, x, ch);
+  mvwaddch(w, y, x, (chtype) ch);
   mvwchgat(w, y, x, 1, a, cp, NULL);
   wrefresh(w);
 }
@@ -481,7 +494,6 @@ set_winstr(WINDOW * w, int x, int y, attr_t a, short cp, const char * str, ...)
   wrefresh(w);
   vw_printw(w, str, args);
   va_end(args);
-
   mvwchgat(w, y, x, len, a, cp, NULL);
   wrefresh(w);
 }
@@ -510,7 +522,6 @@ write_log(int level, const char * str, ...)
         prefix = "[?] ";
         break;
     }
-
     fputs(prefix, g_log);
     va_start(args, str);
     vfprintf(g_log, str, args);

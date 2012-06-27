@@ -32,8 +32,8 @@
 
 #include "util.h"
 
-#define INFO_VERSION "0.2.0"
-// Player name has 20 characters
+#define INFO_VERSION "0.3.0"
+// Player name has 20 characters + \0
 #define P_MAXNAMELEN 21
 
 enum loglevel
@@ -55,12 +55,12 @@ enum inputmodes
 enum colourpairs
 {
   CP_WHITEBLACK, CP_WHITERED, CP_REDBLACK, CP_YELLOWBLACK, CP_MAGENTABLACK,
-  CP_REDWHITE, CP_BLACKWHITE, CP_GREENBLACK
+  CP_REDWHITE, CP_BLACKWHITE, CP_GREENBLACK, CP_WHITEBLUE
 };
 
 enum entitytypes
 {
-  ENT_NOTHING, ENT_PLAYER, ENT_OBSTACLE, ENT_ENEMY, ENT_BULLET
+  ENT_NOTHING, ENT_PLAYER
 };
 
 typedef struct coordinates
@@ -110,7 +110,7 @@ void rm_form(FORM * f);
 void rm_menu(MENU * m);
 void rm_win(WINDOW * w);
 void set_inputmode(int mode);
-void set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, chtype ch);
+void set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, char ch);
 void set_winstr(WINDOW * w, int x, int y, attr_t a, short cp, const char * str,
                 ...);
 void write_log(int level, const char * str, ...);

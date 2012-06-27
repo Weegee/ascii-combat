@@ -20,12 +20,6 @@
 
 int main(void)
 {
-  PLAYER * p;
-  WINDOWLIST * lw;
-  OBSTACLELIST * lo;
-  BULLETLIST * lb;
-  ENEMYLIST * le;
-
   // Random numbers
   srand((unsigned)time(NULL));
 
@@ -37,15 +31,6 @@ int main(void)
   init_console();
   init_config();
   init_game();
-  init_field();
-  lw = init_windows();
-  p = create_player(lw->w_game, lw->w_field);
-  init_timer(lw->w_game);
-  lo = create_obstaclelist();
-  lb = create_bulletlist();
-  le = create_enemylist();
-  while (loop_game(lw, lb, le, lo, p));
-
-  quit_game(lw, lb, le, lo, p);
+  exit_game();
   return EXIT_SUCCESS;
 }

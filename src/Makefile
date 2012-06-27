@@ -1,11 +1,17 @@
 CC=gcc
-#CFLAGS=-D_GNU_SOURCE -g -O2 -Wall -pedantic -std=c99 -c
-CFLAGS=-D_GNU_SOURCE -Wall -Wextra -Wformat=2 -Wswitch-default -Wcast-align \
-				-Wpointer-arith -Wbad-function-cast -Wstrict-prototypes -Winline \
-				-Wundef -Wnested-externs -Wcast-qual -Wshadow -Wwrite-strings \
-				-Wconversion -Wunreachable-code -Wstrict-aliasing=2 -ffloat-store \
-				-fno-common -fstrict-aliasing -std=c99 -pedantic -O0 -ggdb3 -c
-LDFLAGS=-L/usr/lib -lcurses -lm -lmenu -lform
+# GCC Development CFLAGS
+CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Werror -Wfatal-errors -Wall \
+	-pedantic-errors -Wextra -Wformat=2 -Wswitch-default -Wswitch-enum \
+	-Wunused-parameter -Wstrict-overflow=5 -Wfloat-equal -Wundef -Wshadow \
+	-Wunsafe-loop-optimizations -Wbad-function-cast -Wcast-qual -Wcast-align \
+	-Wwrite-strings -Wconversion -Wlogical-op -Wstrict-prototypes \
+	-Wold-style-definition -Wmissing-prototypes -Wmissing-declarations \
+	-Wmissing-noreturn -Wredundant-decls -Wnested-externs -Wunreachable-code \
+	-Winline -Wstack-protector -fstrict-aliasing -fno-common -ffloat-store \
+	-fno-omit-frame-pointer -c
+# GCC Release CFLAGS
+#CFLAGS=-D_GNU_SOURCE -std=c99 -O2 -Wall -c
+LDFLAGS=-lcurses -lm -lmenu -lform
 SRCFILES=$(wildcard *.c)
 OBJFILES=$(patsubst %.c,%.o,$(SRCFILES))
 PROGNAME=ascii-combat
@@ -15,7 +21,7 @@ PROGNAME=ascii-combat
 all: $(PROGNAME)
 
 $(PROGNAME): $(OBJFILES)
-	$(CC) $(LDFLAGS) -o $(PROGNAME) $(OBJFILES)
+	$(CC) -o $(PROGNAME) $(OBJFILES) $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ $<

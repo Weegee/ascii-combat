@@ -18,41 +18,9 @@
 
 #include "player.h"
 
-// Creates a player bullet
-/* TODO: Has to be rewritten from scratch. Other entities will have bullets too,
- * not only the player. Also, player bullets should always spawn in front of
- * the player and fly in the direction he is facing. */
-void
-create_bullet(WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
-{
-  BULLET * b;
-
-  b = malloc(sizeof(BULLET));
-  b->x = p->x + 1;
-  b->y = p->y;
-  b->next = NULL;
-
-  if (lb->tail != NULL)
-  {
-    lb->tail->next = b;
-  }
-  if (lb->num == 0)
-  {
-    lb->head = b;
-  }
-  lb->tail = b;
-  p->ammo--;
-  lb->num++;
-
-  set_winchar(w_field, b->x, b->y, A_NORMAL, CP_WHITEBLACK, '-');
-  g_fld[b->x][b->y] = ENT_BULLET;
-  write_log(LOG_VERBOSE, "Created bullet %p\n", (void *) b);
-  write_log(LOG_DEBUG, "x: %d; y: %d; lb->num: %d\n", b->x, b->y, lb->num);
-}
-
 // Initialises the player character
 PLAYER *
-create_player(WINDOW * w_game, WINDOW * w_field)
+create_player(WINDOWLIST * lw)
 {
   PLAYER * p;
 
@@ -62,51 +30,26 @@ create_player(WINDOW * w_game, WINDOW * w_field)
   p->x = CON_FIELDMAXX / 2;
   p->y = CON_FIELDMAXY / 2;
   g_fld[p->x][p->y] = ENT_PLAYER;
-  p->hp = 50;
-  p->ammo = 25;
+  p->hp = 100;
+  p->armour = 100;
   p->score = 0;
-  set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+  p->exp = 0;
+  set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
 
   if (LOG_LEVEL >= LOG_VERBOSE)
   {
-    set_winstr(w_game, 0, 0, A_NORMAL, CP_WHITEBLACK, "P: %02d|%02d", p->x,
+    set_winstr(lw->w_game, 0, 0, A_NORMAL, CP_WHITEBLACK, "P: %02d|%02d", p->x,
                p->y);
   }
-  write_log(LOG_VERBOSE, "Created player %p\n", (void *) p);
-  write_log(LOG_DEBUG, "x: %d; y: %d; name: %s; hp: %d; ammo: %d; score: %d\n",
-            p->x, p->y, cfg->p_name, p->hp, p->ammo, p->score);
+  write_log(LOG_VERBOSE, "%s:\n\tCreated player %p\n", __func__, (void *) p);
+  write_log(LOG_DEBUG, "\tx: %d\n\ty: %d\n\tname: %s\n\thp: %d\n\tscore: %d\n",
+            p->x, p->y, cfg->p_name, p->hp, p->score);
   return p;
-}
-
-// Controls the player bullet movement
-void
-ctrl_bullets(WINDOW * w_field, BULLETLIST * lb)
-{
-  if (lb->num > 0)
-  {
-    BULLET * b, * b_next;
-
-    for (b = lb->head; b != NULL; b = b_next)
-    {
-      if (b->x > CON_FIELDMAXX)
-      {
-        write_log(LOG_DEBUG, "Bullet %p is outside the playing field; x: %d; "
-                  "y: %d\n", (void *) b, b->x, b->y);
-        b_next = b->next;
-        rm_bullet(w_field, lb, b);
-      }
-      else
-      {
-        mv_bullet(w_field, b);
-        b_next = b->next;
-      }
-    }
-  }
 }
 
 // Controls the player input
 void
-ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
+ctrl_player(WINDOWLIST * lw, PLAYER * p)
 {
   char input;
 
@@ -122,11 +65,11 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
     p->ch = '^';
     if (p->y > CON_FIELDMINY)
     {
-      mv_player(w_game, w_field, p, DIR_UP);
+      mv_player(lw, p, DIR_UP);
     }
     else
     {
-      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+      set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
     }
   }
   else if (input == cfg->down)
@@ -134,11 +77,11 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
     p->ch = 'v';
     if (p->y < CON_FIELDMAXY)
     {
-      mv_player(w_game, w_field, p, DIR_DOWN);
+      mv_player(lw, p, DIR_DOWN);
     }
     else
     {
-      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+      set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
     }
   }
   else if (input == cfg->left)
@@ -146,11 +89,11 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
     p->ch = '<';
     if (p->x > CON_FIELDMINX)
     {
-      mv_player(w_game, w_field, p, DIR_LEFT);
+      mv_player(lw, p, DIR_LEFT);
     }
     else
     {
-      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+      set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
     }
   }
   else if (input == cfg->right)
@@ -158,22 +101,34 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
     p->ch = '>';
     if (p->x < CON_FIELDMAXX)
     {
-      mv_player(w_game, w_field, p, DIR_RIGHT);
+      mv_player(lw, p, DIR_RIGHT);
     }
     else
     {
-      set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+      set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
     }
   }
   else if (input == cfg->use)
   {
-    if (p->x < CON_FIELDMAXX && p->ammo > 0)
-    {
-      if (g_fld[p->x + 1][p->y] != ENT_BULLET)
-      {
-        create_bullet(w_field, lb, p);
-      }
-    }
+    set_player_dmg(lw->w_field, p, 10); // Just for testing purposes
+  }
+  else if (input == cfg->nextw)
+  {
+    // Next weapon
+  }
+  else if (input == cfg->prevw)
+  {
+    // Previous weapon
+  }
+  else if (input == cfg->inv)
+  {
+    show_inventory();
+    redrawwin(lw->w_field);
+    redrawwin(lw->w_game);
+    redrawwin(lw->w_status);
+    wrefresh(lw->w_field);
+    wrefresh(lw->w_game);
+    wrefresh(lw->w_status);
   }
   else if (input == '\n')
   {
@@ -195,53 +150,21 @@ ctrl_player(WINDOW * w_game, WINDOW * w_field, BULLETLIST * lb, PLAYER * p)
      * cpu usage. Thus, usleep is used to calm down the cpu. */
     usleep(500);
   }
-}
 
-// Initialises the bullet list
-BULLETLIST *
-create_bulletlist()
-{
-  BULLETLIST * lb;
-
-  lb = malloc(sizeof(BULLETLIST));
-  lb->head = NULL;
-  lb->tail = NULL;
-  lb->num = 0;
-  write_log(LOG_DEBUG, "Created the bullet list %p\n", (void *) lb);
-  return lb;
-}
-
-// Moves the player bullets on the playing field
-void
-mv_bullet(WINDOW * w_field, BULLET * b)
-{
-  write_log(LOG_VERBOSE, "Moving bullet %p\n", (void *) b);
-  write_log(LOG_DEBUG, "x: %d; y: %d\n", b->x, b->y);
-
-  if (g_fld[b->x][b->y] == ENT_BULLET)
+  if (p->hp == 0)
   {
-    set_winchar(w_field, b->x, b->y, A_NORMAL, CP_WHITEBLACK, ' ');
-    g_fld[b->x][b->y] = ENT_NOTHING;
-  }
-
-  b->x++;
-  if (b->x <= CON_FIELDMAXX)
-  {
-    if (g_fld[b->x][b->y] == ENT_NOTHING)
-    {
-      set_winchar(w_field, b->x, b->y, A_NORMAL, CP_WHITEBLACK, '-');
-    }
-    g_fld[b->x][b->y] = ENT_BULLET;
+    write_log(LOG_INFO, "%s:\n\tPlayer is dead, stopping game ...\n", __func__);
+    p->quit = true;
   }
 }
 
 // Moves the player on the playing field
 void
-mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
+mv_player(WINDOWLIST * lw, PLAYER * p, int dir)
 {
-  write_log(LOG_DEBUG, "Moving player %p; x: %d; y: %d\n", (void *) p, p->x,
-            p->y);
-  set_winchar(w_field, p->x, p->y, A_NORMAL, CP_WHITEBLACK, ' ');
+  write_log(LOG_DEBUG, "%s:\n\tMoving player %p\n\tOld x: %d\n\tOld y: %d\n",
+            __func__, (void *) p, p->x, p->y);
+  set_winchar(lw->w_field, p->x, p->y, A_NORMAL, CP_WHITEBLACK, ' ');
   g_fld[p->x][p->y] = ENT_NOTHING;
 
   switch (dir)
@@ -262,86 +185,14 @@ mv_player(WINDOW * w_game, WINDOW * w_field, PLAYER * p, int dir)
       break;
   }
   g_fld[p->x][p->y] = ENT_PLAYER;
-  set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
+  set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
 
   if (LOG_LEVEL >= LOG_VERBOSE)
   {
-    set_winstr(w_game, 0, 0, A_NORMAL, CP_WHITEBLACK, "P: %02d|%02d", p->x,
+    set_winstr(lw->w_game, 0, 0, A_NORMAL, CP_WHITEBLACK, "P: %02d|%02d", p->x,
                p->y);
   }
-}
-
-// Destroys a player bullet
-void
-rm_bullet(WINDOW * w_field, BULLETLIST * lb, BULLET * b)
-{
-  BULLET * b_prev, * b_cur;
-
-  write_log(LOG_VERBOSE, "Removing bullet %p\n", (void *) b);
-  write_log(LOG_DEBUG, "x: %d; y: %d; lb->num: %d\n", b->x, b->y, lb->num);
-  /* Only set a whitespace on the screen when the bullet was on the playing
-   * field */
-  if (b->x <= CON_FIELDMAXX)
-  {
-    if (g_fld[b->x][b->y] == ENT_BULLET)
-    {
-      set_winchar(w_field, b->x, b->y, A_NORMAL, CP_WHITEBLACK, ' ');
-      g_fld[b->x][b->y] = ENT_NOTHING;
-    }
-  }
-
-  for (b_cur = lb->head, b_prev = NULL; b_cur != NULL; b_prev = b_cur,
-       b_cur = b_cur->next)
-  {
-    if (b_cur == b)
-    {
-      if (b == lb->head && b == lb->tail)
-      {
-        lb->head = NULL;
-        lb->tail = NULL;
-      }
-      else if (b == lb->head)
-      {
-        lb->head = b->next;
-      }
-      else if (b == lb->tail)
-      {
-        lb->tail = b_prev;
-        b_prev->next = NULL;
-      }
-      else
-      {
-        b_prev->next = b_cur->next;
-      }
-
-      b->next = NULL;
-      free(b);
-      b = NULL;
-      lb->num--;
-      break;
-    }
-  }
-
-  write_log(LOG_DEBUG, "lb->num is now %d\n", lb->num);
-}
-
-// Destroys the bullet list and removes all remaining bullets
-void
-rm_bulletlist(BULLETLIST * lb)
-{
-  BULLET * b_cur;
-  BULLET * b_next;
-
-  write_log(LOG_DEBUG, "Removing the bullet list %p; lb->num: %d\n",
-            (void *) lb, lb->num);
-  b_cur = lb->head;
-  while (b_cur != NULL)
-  {
-    b_next = b_cur->next;
-    free(b_cur);
-    b_cur = b_next;
-  }
-  free(lb);
+  write_log(LOG_DEBUG, "\tNew x: %d\n\tNew y: %d\n", p->x, p->y);
 }
 
 // Sets player damage, shows a damage "animation"
@@ -349,10 +200,49 @@ rm_bulletlist(BULLETLIST * lb)
 void
 set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg)
 {
-  write_log(LOG_DEBUG, "Player %p receives %d damage; p->hp: %d\n", (void *) p,
-            p->hp);
-  p->hp -= dmg;
+  write_log(LOG_DEBUG, "%s:\n\tPlayer %p receives %d damage\n\tp->hp: %d"
+            "\n\tp->armour: %d\n", __func__, (void *) p, dmg, p->hp, p->armour);
+  if (p->armour > 0)
+  {
+    if (p->armour < 2 * dmg / 3)
+    {
+      // Make sure the player receives all damage
+      p->armour -= 2 * dmg / 3;
+      dmg += p->armour;
+      p->hp -= dmg;
+    }
+    else
+    {
+      p->hp -= dmg / 3;
+      p->armour -= 2 * dmg / 3;
+    }
+  }
+  else
+  {
+    p->hp -= dmg;
+  }
   p->hp = p->hp < 0 ? 0 : p->hp;
-  write_log(LOG_DEBUG, "p->hp is now %d\n", p->hp);
+  p->armour = p->armour < 0 ? 0 : p->armour;
+  write_log(LOG_DEBUG, "\tNew p->hp: %d\n\tp->armour: %d\n", p->hp, p->armour);
   set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITERED, p->ch);
+}
+
+// Shows the inventory
+void
+show_inventory(void)
+{
+  WINDOW * w_inv;
+  COORDS co;
+  int t_freeze;
+
+  w_inv = create_win(0, 0, 0, 0, 1, CP_WHITEBLUE);
+  co = get_geometry(w_inv);
+  set_winstr(w_inv, (co.x - (int) strlen("INVENTORY")) / 2, 1, A_BOLD,
+             CP_WHITEBLUE, "INVENTORY");
+
+  t_freeze = pause_game();
+  set_inputmode(IM_KEYPRESS);
+  getch();
+  rm_win(w_inv);
+  resume_game(t_freeze);
 }
