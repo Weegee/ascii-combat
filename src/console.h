@@ -32,7 +32,7 @@
 
 #include "util.h"
 
-#define INFO_VERSION "0.3.0-dev"
+#define INFO_VERSION "0.3.0"
 // Player name has 20 characters + \0
 #define P_MAXNAMELEN 21
 

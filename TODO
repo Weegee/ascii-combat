@@ -1,34 +1,3 @@
-0.3.0
-=====
-[X] Implement EXP
-
-  To progress in ASCII Combat, the player has to gain experience points, EXP.
-  EXP are needed if you want to upgrade your weapons or your ship, and
-  eventually, they will result - together with other factors - in your personal
-  score.
-
-[X] Implement armour
-
-  Armour is actually the ship's shield which helps to reduce the amount of
-  damage your ship takes. It prevents the immediate destruction of the ship
-  itself.
-
-[X] Implement an inventory
-
-  The player should always be able to know which items he has collected and
-  what properties they have. For this reason, a fullscreen window/menu should be
-  shown which displays all items and their features.
-
-  [X] Create a new w_inv with information about weapons and items
-
-[X] Implement stages
-
-  Stages are what one might call levels. Every stage is a part of the game, in
-  which the player is able to gain EXP. At the end of every stage there is a
-  so-called stage boss, which the player has to defeat in order to continue
-  (or to quit) the game. The difficulty of the game increases from stage to
-  stage (enemies have more health points, deal more damage and so on).
-
 0.4.0 - 1.0.0
 =============
 Add content (items, obstacles, enemies, ...). More details will be added later
