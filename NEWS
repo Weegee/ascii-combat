@@ -11,3 +11,12 @@
 * Rearrange status windows, show more information to the user
 * Implement message windows with input control
 * Removed parts of deprecated code
+
+0.3.0
+=====
+* Small code cleanup
+* Implement player armour
+* Output prettier log messages
+* Return to main menu after the game is over
+* Implement an inventory window
+* Implement stages
