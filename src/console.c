@@ -24,25 +24,6 @@ FILE * g_log;
 CONFIG * cfg;
 TIMER * t;
 
-/* Creates a ncurses form within the specified windows, also sets the given
- * attributes */
-FORM *
-create_form(WINDOW * w_form, WINDOW * w_sub, FIELD ** fld)
-{
-  FORM * f;
-
-  f = new_form(fld);
-  set_form_win(f, w_form);
-  set_form_sub(f, w_sub);
-  post_form(f);
-  wrefresh(w_form);
-
-  write_log(LOG_VERBOSE, "%s:\n\tCreated form %p\n", __func__, (void *) f);
-  write_log(LOG_DEBUG, "\tfld: %p\n\tw_form: %p\n\tw_sub: %p\n", (void *) fld,
-           (void *) w_form, (void *) w_sub);
-  return f;
-}
-
 /* Creates a ncurses menu using the specified windows, then sets the given
  * attributes */
 MENU *
@@ -215,10 +196,9 @@ init_config(void)
     write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
               __func__, filename);
     f_cfg = fopen(filename, "w");
-    write_log(LOG_VERBOSE, "\tCreated file %p\ntWriting default config to %s\n",
+    write_log(LOG_VERBOSE, "\tCreated file %p\n\tWriting default config to %s\n",
               (void *) f_cfg, filename);
 
-    strcpy(cfg->p_name, "Unknown");
     cfg->up = 'w';
     cfg->down = 's';
     cfg->left = 'a';
@@ -237,11 +217,11 @@ init_config(void)
     fread(cfg, sizeof(CONFIG), 1, f_cfg);
   }
 
-  write_log(LOG_DEBUG, "\tcfg->p_name: %s\n\tcfg->up: %d\n\tcfg->down: %d"
+  write_log(LOG_DEBUG, "\tcfg->up: %d\n\tcfg->down: %d"
             "\n\tcfg->left: %d\n\tcfg->right: %d\n\tcfg->use: %d"
             "\n\tcfg->nextw: %d\n\tcfg->prevw: %d\n\tcfg->inv: %d\n",
-            cfg->p_name, cfg->up, cfg->down, cfg->left, cfg->right, cfg->use,
-            cfg->nextw, cfg->prevw, cfg->inv);
+            cfg->up, cfg->down, cfg->left, cfg->right, cfg->use, cfg->nextw,
+            cfg->prevw, cfg->inv);
   fclose(f_cfg);
   f_cfg = NULL;
   free(filename);
@@ -377,22 +357,6 @@ resume_game(int t_freeze)
   write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
 }
 
-// Destroys a ncurses form
-void
-rm_form(FORM * f)
-{
-  WINDOW * w_form;
-
-  w_form = form_win(f);
-  write_log(LOG_VERBOSE, "%s:\n\tRemoving form %p\n", __func__, (void *) f);
-  write_log(LOG_DEBUG, "\tw_form: %p\n", (void *) w_form);
-
-  unpost_form(f);
-  free_form(f);
-  f = NULL;
-  wrefresh(w_form);
-}
-
 // Destroys a ncurses menu
 void
 rm_menu(MENU * m)
@@ -441,9 +405,8 @@ set_inputmode(int mode)
   switch (mode)
   {
     case IM_TEXTINPUT:
-      /* Shows the cursor while typing (it is unnecessary to use echo() when
-       * dealing with ncurses forms) */
-      noecho();
+      // Shows the cursor and text while typing
+      echo();
       curs_set(true);
       break;
     case IM_KEYPRESS:

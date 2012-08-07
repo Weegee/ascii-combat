@@ -11,7 +11,7 @@ CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Werror -Wfatal-errors -Wall \
 	-fno-omit-frame-pointer -c
 # GCC Release CFLAGS
 #CFLAGS=-D_GNU_SOURCE -std=c99 -O2 -Wall -c
-LDFLAGS=-lcurses -lm -lmenu -lform
+LDFLAGS=-lcurses -lm -lmenu
 SRCFILES=$(wildcard *.c)
 OBJFILES=$(patsubst %.c,%.o,$(SRCFILES))
 PROGNAME=ascii-combat

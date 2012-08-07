@@ -42,8 +42,8 @@ create_player(WINDOWLIST * lw)
                p->y);
   }
   write_log(LOG_VERBOSE, "%s:\n\tCreated player %p\n", __func__, (void *) p);
-  write_log(LOG_DEBUG, "\tx: %d\n\ty: %d\n\tname: %s\n\thp: %d\n\tscore: %d\n",
-            p->x, p->y, cfg->p_name, p->hp, p->score);
+  write_log(LOG_DEBUG, "\tx: %d\n\ty: %d\n\thp: %d\n\tscore: %d\n",
+            p->x, p->y, p->hp, p->score);
   return p;
 }
 

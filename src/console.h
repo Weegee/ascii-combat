@@ -21,7 +21,6 @@
 
 #include <ncurses.h>
 #include <menu.h>
-#include <form.h>
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
@@ -81,7 +80,7 @@ typedef struct timer
 
 typedef struct configuration
 {
-  char p_name[P_MAXNAMELEN], up, down, left, right, use, nextw, prevw, inv;
+  char up, down, left, right, use, nextw, prevw, inv;
 } CONFIG;
 
 extern FILE * g_log;
@@ -89,7 +88,6 @@ extern int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
 extern CONFIG * cfg;
 extern TIMER * t;
 
-FORM * create_form(WINDOW * w_form, WINDOW * w_sub, FIELD ** fld);
 MENU * create_menu(WINDOW * w_menu, WINDOW * w_sub, const char ** items,
                    int num, chtype cp_sel, chtype cp_unsel);
 WINDOW * create_subwin(WINDOW * w_parent, int rows, int cols, int x, int y,
@@ -106,7 +104,6 @@ void init_timer(WINDOW * w);
 WINDOWLIST * init_windows(void);
 int pause_game(void);
 void resume_game(int t_freeze);
-void rm_form(FORM * f);
 void rm_menu(MENU * m);
 void rm_win(WINDOW * w);
 void set_inputmode(int mode);
