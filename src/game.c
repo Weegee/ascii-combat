@@ -18,108 +18,16 @@
 
 #include "game.h"
 
-// Compare function for qsort
-int
-cmp_scores(const void * sc1, const void * sc2)
-{
-  const SCORES * sc_cmp1 = (const SCORES *) sc1;
-  const SCORES * sc_cmp2 = (const SCORES *) sc2;
+TIMER * t;
 
-  if (sc_cmp1->score > sc_cmp2->score)
-  {
-    return -1;
-  }
-  else if (sc_cmp1->score < sc_cmp2->score)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
-}
-
-/* Checks if the current score is higher than the lowest score in the highscore
- * file, then prints the highscore to the file */
+// Displays the elapsed seconds since the game's start, DEBUG ONLY
 void
-ctrl_highscore(int p_exp)
+ctrl_timer(WINDOW * w_game)
 {
-  int p_score;
-  char * filename, p_name[P_MAXNAMELEN];
-  FILE * f_sc;
-  SCORES * sc;
-  struct passwd * passwd;
-  WINDOW * w_name;
-
-  passwd = getpwuid(getuid());
-  sc = calloc(SCOREARRAYSIZE, sizeof(SCORES));
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.acsc", 6);
-
-  p_score = p_exp + t->sec_elapsed / 2;
-  /* The highscore has 10 entries, the scores array has 11. The current score
-   * and player name are copied to the last index of the array, which then gets
-   * sorted by qsort. If the player's score is high enough, it will be in the
-   * first 10 entries of the scores array and thus be written to the highscore
-   * file, which only contains the first 10 entries of the scores array. */
-  for (int i = 0; i < SCOREARRAYSIZE; i++)
+  if (LOG_LEVEL >= LOG_VERBOSE)
   {
-    // Initialises the array with "empty" default values
-    strcpy(sc[i].name, "-");
-    sc[i].score = 0;
+    set_winstr(w_game, 17, 0, A_NORMAL, CP_WHITEBLACK, "T: %d", t->sec_elapsed);
   }
-
-  // Ask for the player name
-  set_inputmode(IM_TEXTINPUT);
-  w_name = create_win(0, 0, 0, 0, false, CP_WHITEBLACK);
-  set_winstr(w_name, 0, CON_TERMY - 1, A_NORMAL, CP_WHITEBLACK,
-             "Enter your name: ");
-  mvwgetnstr(w_name, CON_TERMY - 1, 17, p_name, P_MAXNAMELEN);
-  rm_win(w_name);
-
-  if (!strcmp(p_name, ""))
-  {
-    strcpy(p_name, "Unknown");
-  }
-  strcpy(sc[SCORESIZE].name, p_name);
-  sc[SCORESIZE].score = p_score;
-
-  f_sc = fopen(filename, "r+");
-  if (f_sc == NULL)
-  {
-    write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
-              __func__, filename);
-    f_sc = fopen(filename, "w+");
-    write_log(LOG_VERBOSE, "\tCreated file %p\n", (void *) f_sc);
-
-    qsort(sc, SCOREARRAYSIZE, sizeof(SCORES), cmp_scores);
-    fwrite(sc, sizeof(SCORES), SCORESIZE, f_sc);
-  }
-  else
-  {
-    write_log(LOG_VERBOSE, "%s:\n\tReading scores from %s\n", __func__,
-              filename);
-    fread(sc, sizeof(SCORES), SCORESIZE, f_sc);
-    for (int i = 0; i < SCOREARRAYSIZE; i++)
-    {
-      write_log(LOG_DEBUG, "\tsc[%d].name: %s - sc[%d].score: %d\n", i,
-                sc[i].name, i, sc[i].score);
-    }
-
-    qsort(sc, SCOREARRAYSIZE, sizeof(SCORES), cmp_scores);
-    rewind(f_sc);
-    fwrite(sc, sizeof(SCORES), SCORESIZE, f_sc);
-  }
-
-  write_log(LOG_VERBOSE, "\tScores written to file %p (%s)\n", (void *) f_sc,
-            filename);
-  fclose(f_sc);
-  f_sc = NULL;
-  free(filename);
-  filename = NULL;
-  free(sc);
-  sc = NULL;
 }
 
 // Clears all essential data (config, log file), ends ncurses
@@ -127,8 +35,7 @@ void
 exit_game(void)
 {
   endwin();
-  free(cfg);
-  cfg = NULL;
+  _free(cfg);
   write_log(LOG_INFO, "%s:\n\tQuitting game, goodbye!\n", __func__);
   fclose(g_log);
   g_log = NULL;
@@ -164,6 +71,23 @@ init_game(void)
   show_startmenu();
 }
 
+// Initialises the timer
+void
+init_timer(WINDOW * w_game)
+{
+  struct timeval ct;
+
+  t = malloc(sizeof(TIMER));
+  gettimeofday(&ct, NULL);
+  t->start = (int) ct.tv_sec;
+  t->msec_elapsed = 0;
+  t->sec_elapsed = 0;
+
+  ctrl_timer(w_game);
+  write_log(LOG_INFO, "%s:\n\tGame started at %d\n", __func__, t->start);
+  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
+}
+
 // Main game loop, calls all control functions after a certain time
 int
 loop_game(WINDOWLIST * lw, PLAYER * p)
@@ -195,13 +119,43 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
   }
 
   ctrl_player(lw, p);
-  if (p->quit == true)
+  if (p->quit)
   {
     write_log(LOG_INFO, "%s:\n\tPlayer wants to quit, stopping ...\n", __func__);
     retval = 0;
   }
 
+  if (p->inv)
+  {
+    int t_freeze;
+
+    t_freeze = pause_game();
+    show_inventory(p);
+    redrawwin(lw->w_field);
+    redrawwin(lw->w_game);
+    redrawwin(lw->w_status);
+    wrefresh(lw->w_field);
+    wrefresh(lw->w_game);
+    wrefresh(lw->w_status);
+    resume_game(t_freeze);
+  }
+
   return retval;
+}
+
+// Pauses the game by freezing the timer
+int
+pause_game(void)
+{
+  struct timeval ct;
+  int t_freeze;
+
+  set_inputmode(IM_KEYPRESS);
+  gettimeofday(&ct, NULL);
+  t_freeze = (int) ct.tv_sec;
+  write_log(LOG_INFO, "%s:\n\tGame paused at %d\n", __func__, t_freeze);
+  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
+  return t_freeze;
 }
 
 // Removes all entities, lists and windows
@@ -212,15 +166,25 @@ quit_game(WINDOWLIST * lw, PLAYER * p)
   rm_win(lw->w_game);
   rm_win(lw->w_status);
 
-  ctrl_highscore(p->exp);
+  ctrl_highscore(p->exp, t->sec_elapsed);
   show_highscore();
 
-  free(p);
-  p = NULL;
-  free(lw);
-  lw = NULL;
-  free(t);
-  t = NULL;
+  _free(p);
+  _free(lw);
+  _free(t);
+}
+
+// Resumes the game
+void
+resume_game(int t_freeze)
+{
+  struct timeval ct;
+
+  gettimeofday(&ct, NULL);
+  t->start = t->start + ((int) ct.tv_sec - t_freeze);
+  write_log(LOG_INFO, "%s:\n\tGame resumed at %d\n", __func__, ct.tv_sec);
+  write_log(LOG_VERBOSE, "\tt->start: %d\n", t->start);
+  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
 }
 
 // Initialises the playing field and all entities
@@ -238,67 +202,6 @@ run_game(void)
   init_timer(lw->w_game);
   while (loop_game(lw, p));
   quit_game(lw, p);
-}
-
-// Displays the current highscore
-void
-show_highscore(void)
-{
-  WINDOW * w_scores;
-  COORDS co;
-  SCORES * sc;
-  FILE * f_sc;
-  char * filename;
-  struct passwd * passwd;
-
-  passwd = getpwuid(getuid());
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.acsc", 6);
-  sc = calloc(SCORESIZE, sizeof(SCORES));
-
-  f_sc = fopen(filename, "r");
-  if (f_sc == NULL)
-  {
-    write_log(LOG_INFO, "%s:\n\tUnable to open file %s\n", __func__, filename);
-    // Fill the array with empty values, ignore the file error
-    for (int i = 0; i < SCORESIZE; i++)
-    {
-      strcpy(sc[i].name, "-");
-      sc[i].score = 0;
-    }
-  }
-  else
-  {
-    write_log(LOG_VERBOSE, "%s:\n\tReading scores from %s\n", __func__,
-              filename);
-    fread(sc, sizeof(SCORES), SCORESIZE, f_sc);
-    fclose(f_sc);
-  }
-
-  w_scores = create_win(CON_TERMY, CON_TERMX, 0, 0, 1, CP_WHITEBLACK);
-  co = get_geometry(w_scores);
-  set_winstr(w_scores, (co.x - (int) strlen("HIGHSCORE")) / 2, 1, A_BOLD,
-             CP_WHITEBLACK, "HIGHSCORE");
-  for (int i = 0; i < SCORESIZE; i++)
-  {
-    /* Start from the sixth line, looks better than from the third; also show
-     * the scores right-aligned */
-    set_winstr(w_scores, 1, 6 + i, A_NORMAL, CP_WHITEBLACK, sc[i].name);
-    set_winstr(w_scores, co.x - get_intlen(sc[i].score) - 1, 6 + i, A_NORMAL,
-               CP_WHITEBLACK, "%d", sc[i].score);
-  }
-  set_winstr(w_scores, (co.x - (int) strlen("PRESS ENTER TO CONTINUE")) / 2,
-             co.y - 2, A_BLINK, CP_REDBLACK, "PRESS ENTER TO CONTINUE");
-
-  set_inputmode(IM_KEYPRESS);
-  while (getch() != '\n');
-  rm_win(w_scores);
-  f_sc = NULL;
-  free(filename);
-  filename = NULL;
-  free(sc);
-  sc = NULL;
 }
 
 // Displays text in a message window (max. 160 characters)

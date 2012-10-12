@@ -20,27 +20,29 @@
 #define GAME_H
 
 #include <ctype.h>
+#include <sys/time.h>
+#include <time.h>
+
+#include "score.h"
 #include "player.h"
 
-enum scoreinfo
+typedef struct timer
 {
-  SCOREARRAYSIZE = 11, SCORESIZE = 10
-};
+  int start, sec_elapsed;
+  long msec_elapsed;
+} TIMER;
 
-typedef struct scores
-{
-  int score;
-  char name[P_MAXNAMELEN];
-} SCORES;
+extern TIMER * t;
 
-int cmp_scores(const void * sc1, const void * sc2);
-void ctrl_highscore (int p_exp);
+void ctrl_timer(WINDOW * w_game);
 void exit_game(void);
 void init_game(void);
+void init_timer(WINDOW * w);
 int loop_game(WINDOWLIST * lw, PLAYER * p);
+int pause_game(void);
 void quit_game(WINDOWLIST * lw, PLAYER * p);
+void resume_game(int t_freeze);
 void run_game(void);
-void show_highscore(void);
 void show_message(const char * msg, ...);
 void show_options(void);
 bool show_prompt(const char * msg, ...);

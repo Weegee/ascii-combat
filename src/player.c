@@ -26,6 +26,7 @@ create_player(WINDOWLIST * lw)
 
   p = malloc(sizeof(PLAYER));
   p->quit = false;
+  p->inv = false;
   p->ch = '>';
   p->x = CON_FIELDMAXX / 2;
   p->y = CON_FIELDMAXY / 2;
@@ -122,26 +123,11 @@ ctrl_player(WINDOWLIST * lw, PLAYER * p)
   }
   else if (input == cfg->inv)
   {
-    show_inventory();
-    redrawwin(lw->w_field);
-    redrawwin(lw->w_game);
-    redrawwin(lw->w_status);
-    wrefresh(lw->w_field);
-    wrefresh(lw->w_game);
-    wrefresh(lw->w_status);
+    p->inv = true;
   }
   else if (input == '\n')
   {
     p->quit = true;
-  }
-  else if (input == 'p') // Just for debug purposes, will be removed later on
-  {
-    int t_freeze;
-
-    t_freeze = pause_game();
-    set_inputmode(IM_KEYPRESS);
-    while(getch() != '\n');
-    resume_game(t_freeze);
   }
   else if (input == ERR)
   {
@@ -229,20 +215,18 @@ set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg)
 
 // Shows the inventory
 void
-show_inventory(void)
+show_inventory(PLAYER * p)
 {
   WINDOW * w_inv;
   COORDS co;
-  int t_freeze;
 
   w_inv = create_win(0, 0, 0, 0, 1, CP_WHITEBLUE);
   co = get_geometry(w_inv);
   set_winstr(w_inv, (co.x - (int) strlen("INVENTORY")) / 2, 1, A_BOLD,
              CP_WHITEBLUE, "INVENTORY");
 
-  t_freeze = pause_game();
   set_inputmode(IM_KEYPRESS);
   getch();
   rm_win(w_inv);
-  resume_game(t_freeze);
+  p->inv = false;
 }

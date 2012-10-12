@@ -1,4 +1,4 @@
-/* util.h: Declarations for util.c.
+/* score.h: Declarations for score.c.
  * Copyright (C) 2011, 2012 Weegee
  *
  * This file is part of ASCII Combat.
@@ -16,26 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with ASCII Combat.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef SCORE_H
+#define SCORE_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <math.h>
-#include <unistd.h>
-#include <stdarg.h>
+#include <pwd.h>
 
-enum loglevel
+#include "console.h"
+
+enum scoreinfo
 {
-  LOG_NONE, LOG_INFO, LOG_VERBOSE, LOG_DEBUG, LOG_LEVEL = LOG_DEBUG
+  SCOREARRAYSIZE = 11, SCORESIZE = 10
 };
 
-extern FILE * g_log;
+typedef struct scores
+{
+  int score;
+  char name[P_MAXNAMELEN];
+} SCORES;
 
-void _free(void * ptr);
-int get_intlen(int n);
-int get_randint(int min, int max);
-void write_log(int level, const char * str, ...);
+int cmp_scores(const void * sc1, const void * sc2);
+void ctrl_highscore(int p_exp, int sec_elapsed);
+void show_highscore(void);
 
 #endif

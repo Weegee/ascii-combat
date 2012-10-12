@@ -1,4 +1,4 @@
-/* util.c: Functions to facilitate common coding needs.
+/* util.c: Helper functions for several small tasks
  * Copyright (C) 2011, 2012 Weegee
  *
  * This file is part of ASCII Combat.
@@ -18,6 +18,16 @@
 
 #include "util.h"
 
+FILE * g_log;
+
+// Frees allocated space, removes dangling pointer
+void
+_free(void * ptr)
+{
+  free(ptr);
+  ptr = NULL;
+}
+
 // Returns the length of an integer
 int
 get_intlen(int n)
@@ -30,4 +40,36 @@ int
 get_randint(int min, int max)
 {
   return min + rand() % (max - min + 1);
+}
+
+// Prints debug messages to the log file
+void
+write_log(int level, const char * str, ...)
+{
+  if (level <= LOG_LEVEL)
+  {
+    const char * prefix;
+    va_list args;
+
+    switch (level)
+    {
+      case LOG_INFO:
+        prefix = "[I] ";
+        break;
+      case LOG_VERBOSE:
+        prefix = "[V] ";
+        break;
+      case LOG_DEBUG:
+        prefix = "[D] ";
+        break;
+      default:
+        prefix = "[?] ";
+        break;
+    }
+    fputs(prefix, g_log);
+    va_start(args, str);
+    vfprintf(g_log, str, args);
+    fflush(g_log);
+    va_end(args);
+  }
 }

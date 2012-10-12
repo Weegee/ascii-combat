@@ -18,11 +18,7 @@
 
 #include "console.h"
 
-// The playing field is actually 21 rows high and 78 columns wide
 int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
-FILE * g_log;
-CONFIG * cfg;
-TIMER * t;
 
 /* Creates a ncurses menu using the specified windows, then sets the given
  * attributes */
@@ -109,28 +105,6 @@ create_win(int rows, int cols, int x, int y, bool box, chtype cp)
   }
 }
 
-// Stores the config struct to a config file
-void
-ctrl_config(void)
-{
-  FILE * f_cfg;
-  char * filename;
-  struct passwd * passwd;
-
-  passwd = getpwuid(getuid());
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.accfg", 7);
-
-  write_log(LOG_VERBOSE, "%s:\n\tWriting config to %s\n", __func__, filename);
-  f_cfg = fopen(filename, "w");
-  fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
-  fclose(f_cfg);
-  f_cfg = NULL;
-  free(filename);
-  filename = NULL;
-}
-
 // Wrapper function for the menu driver
 int
 ctrl_menu(WINDOW * w, MENU * m)
@@ -156,16 +130,6 @@ ctrl_menu(WINDOW * w, MENU * m)
   return item_index(current_item(m));
 }
 
-// Displays the elapsed seconds since the game's start, DEBUG ONLY
-void
-ctrl_timer(WINDOW * w_game)
-{
-  if (LOG_LEVEL >= LOG_VERBOSE)
-  {
-    set_winstr(w_game, 17, 0, A_NORMAL, CP_WHITEBLACK, "T: %d", t->sec_elapsed);
-  }
-}
-
 // Returns the window geometry of a window
 COORDS
 get_geometry(WINDOW * w)
@@ -174,58 +138,6 @@ get_geometry(WINDOW * w)
 
   getmaxyx(w, co.y, co.x);
   return co;
-}
-
-// Initialises the config struct
-void
-init_config(void)
-{
-  FILE * f_cfg;
-  char * filename;
-  struct passwd * passwd;
-
-  cfg = malloc(sizeof(CONFIG));
-  passwd = getpwuid(getuid());
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.accfg", 7);
-
-  f_cfg = fopen(filename, "r");
-  if (f_cfg == NULL)
-  {
-    write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
-              __func__, filename);
-    f_cfg = fopen(filename, "w");
-    write_log(LOG_VERBOSE, "\tCreated file %p\n\tWriting default config to %s\n",
-              (void *) f_cfg, filename);
-
-    cfg->up = 'w';
-    cfg->down = 's';
-    cfg->left = 'a';
-    cfg->right = 'd';
-    cfg->use = ' ';
-    cfg->nextw = 'r';
-    cfg->prevw = 'e';
-    cfg->inv = 'f';
-
-    fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
-  }
-  else
-  {
-    write_log(LOG_VERBOSE, "%s:\n\tReading configuration from %s\n", __func__,
-              filename);
-    fread(cfg, sizeof(CONFIG), 1, f_cfg);
-  }
-
-  write_log(LOG_DEBUG, "\tcfg->up: %d\n\tcfg->down: %d"
-            "\n\tcfg->left: %d\n\tcfg->right: %d\n\tcfg->use: %d"
-            "\n\tcfg->nextw: %d\n\tcfg->prevw: %d\n\tcfg->inv: %d\n",
-            cfg->up, cfg->down, cfg->left, cfg->right, cfg->use, cfg->nextw,
-            cfg->prevw, cfg->inv);
-  fclose(f_cfg);
-  f_cfg = NULL;
-  free(filename);
-  filename = NULL;
 }
 
 // Initiates ncurses, shows a splash screen
@@ -282,23 +194,6 @@ init_field(void)
   write_log(LOG_VERBOSE, "%s:\n\tInitialised the playing field\n", __func__);
 }
 
-// Initialises the timer
-void
-init_timer(WINDOW * w_game)
-{
-  struct timeval ct;
-
-  t = malloc(sizeof(TIMER));
-  gettimeofday(&ct, NULL);
-  t->start = (int) ct.tv_sec;
-  t->msec_elapsed = 0;
-  t->sec_elapsed = 0;
-
-  ctrl_timer(w_game);
-  write_log(LOG_INFO, "%s:\n\tGame started at %d\n", __func__, t->start);
-  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
-}
-
 // Initialises the game/status windows
 WINDOWLIST *
 init_windows(void)
@@ -329,34 +224,6 @@ init_windows(void)
   return lw;
 }
 
-// Pauses the game by freezing the timer
-int
-pause_game(void)
-{
-  struct timeval ct;
-  int t_freeze;
-
-  set_inputmode(IM_KEYPRESS);
-  gettimeofday(&ct, NULL);
-  t_freeze = (int) ct.tv_sec;
-  write_log(LOG_INFO, "%s:\n\tGame paused at %d\n", __func__, t_freeze);
-  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
-  return t_freeze;
-}
-
-// Resumes the game
-void
-resume_game(int t_freeze)
-{
-  struct timeval ct;
-
-  gettimeofday(&ct, NULL);
-  t->start = t->start + ((int) ct.tv_sec - t_freeze);
-  write_log(LOG_INFO, "%s:\n\tGame resumed at %d\n", __func__, ct.tv_sec);
-  write_log(LOG_VERBOSE, "\tt->start: %d\n", t->start);
-  write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
-}
-
 // Destroys a ncurses menu
 void
 rm_menu(MENU * m)
@@ -381,8 +248,7 @@ rm_menu(MENU * m)
     free_item(li[i]);
     li[i] = NULL;
   }
-  free(li);
-  li = NULL;
+  _free(li);
   wrefresh(w_menu);
   wrefresh(w_sub);
 }
@@ -459,36 +325,4 @@ set_winstr(WINDOW * w, int x, int y, attr_t a, short cp, const char * str, ...)
   va_end(args);
   mvwchgat(w, y, x, len, a, cp, NULL);
   wrefresh(w);
-}
-
-// Prints debug messages to the log file
-void
-write_log(int level, const char * str, ...)
-{
-  if (level <= LOG_LEVEL)
-  {
-    const char * prefix;
-    va_list args;
-
-    switch (level)
-    {
-      case LOG_INFO:
-        prefix = "[I] ";
-        break;
-      case LOG_VERBOSE:
-        prefix = "[V] ";
-        break;
-      case LOG_DEBUG:
-        prefix = "[D] ";
-        break;
-      default:
-        prefix = "[?] ";
-        break;
-    }
-    fputs(prefix, g_log);
-    va_start(args, str);
-    vfprintf(g_log, str, args);
-    fflush(g_log);
-    va_end(args);
-  }
 }

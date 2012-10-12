@@ -20,6 +20,7 @@
 #define PLAYER_H
 
 #include "console.h"
+#include "config.h"
 
 enum directions
 {
@@ -29,7 +30,7 @@ enum directions
 typedef struct player
 {
   int hp, armour, x, y, exp, score, stage;
-  bool quit;
+  bool quit, inv;
   char ch;
 } PLAYER;
 
@@ -37,6 +38,6 @@ PLAYER * create_player(WINDOWLIST * lw);
 void ctrl_player(WINDOWLIST * lw, PLAYER * p);
 void mv_player(WINDOWLIST * lw, PLAYER * p, int dir);
 void set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg);
-void show_inventory(void);
+void show_inventory(PLAYER * p);
 
 #endif

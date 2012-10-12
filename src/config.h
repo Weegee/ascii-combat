@@ -1,4 +1,4 @@
-/* util.h: Declarations for util.c.
+/* config.h: Declarations for config.c.
  * Copyright (C) 2011, 2012 Weegee
  *
  * This file is part of ASCII Combat.
@@ -16,26 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with ASCII Combat.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <math.h>
-#include <unistd.h>
-#include <stdarg.h>
+#include <pwd.h>
+#include <string.h>
 
-enum loglevel
+#include "util.h"
+
+typedef struct configuration
 {
-  LOG_NONE, LOG_INFO, LOG_VERBOSE, LOG_DEBUG, LOG_LEVEL = LOG_DEBUG
-};
+  char up, down, left, right, use, nextw, prevw, inv;
+} CONFIG;
 
-extern FILE * g_log;
+extern CONFIG * cfg;
 
-void _free(void * ptr);
-int get_intlen(int n);
-int get_randint(int min, int max);
-void write_log(int level, const char * str, ...);
+void ctrl_config(void);
+void init_config(void);
 
 #endif

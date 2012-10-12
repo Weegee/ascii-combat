@@ -22,23 +22,13 @@
 #include <ncurses.h>
 #include <menu.h>
 #include <string.h>
-#include <sys/time.h>
-#include <time.h>
-#include <stdarg.h>
 #include <stdbool.h>
-#include <sys/types.h>
-#include <pwd.h>
 
 #include "util.h"
 
 #define INFO_VERSION "0.4.0-dev"
 // Player name has 20 characters + \0
 #define P_MAXNAMELEN 21
-
-enum loglevel
-{
-  LOG_NONE, LOG_INFO, LOG_VERBOSE, LOG_DEBUG, LOG_LEVEL = LOG_DEBUG
-};
 
 enum consoleinfo
 {
@@ -72,44 +62,23 @@ typedef struct windowlist
   WINDOW * w_game, * w_field, * w_status;
 } WINDOWLIST;
 
-typedef struct timer
-{
-  int start, sec_elapsed;
-  long msec_elapsed;
-} TIMER;
-
-typedef struct configuration
-{
-  char up, down, left, right, use, nextw, prevw, inv;
-} CONFIG;
-
-extern FILE * g_log;
 extern int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
-extern CONFIG * cfg;
-extern TIMER * t;
 
 MENU * create_menu(WINDOW * w_menu, WINDOW * w_sub, const char ** items,
                    int num, chtype cp_sel, chtype cp_unsel);
 WINDOW * create_subwin(WINDOW * w_parent, int rows, int cols, int x, int y,
                        bool box, chtype cp);
 WINDOW * create_win(int rows, int cols, int x, int y, bool box, chtype cp);
-void ctrl_config(void);
 int ctrl_menu(WINDOW * w, MENU * m);
-void ctrl_timer(WINDOW * w_game);
 COORDS get_geometry(WINDOW * w);
-void init_config(void);
 void init_console(void);
 void init_field(void);
-void init_timer(WINDOW * w);
 WINDOWLIST * init_windows(void);
-int pause_game(void);
-void resume_game(int t_freeze);
 void rm_menu(MENU * m);
 void rm_win(WINDOW * w);
 void set_inputmode(int mode);
 void set_winchar(WINDOW * w, int x, int y, attr_t a, short cp, char ch);
 void set_winstr(WINDOW * w, int x, int y, attr_t a, short cp, const char * str,
                 ...);
-void write_log(int level, const char * str, ...);
 
 #endif
