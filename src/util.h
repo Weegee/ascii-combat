@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 
 enum loglevel
 {

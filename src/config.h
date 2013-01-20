@@ -32,6 +32,7 @@ typedef struct configuration
 extern CONFIG * cfg;
 
 void ctrl_config(void);
+char * get_config_path(void);
 void init_config(void);
 
 #endif

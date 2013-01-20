@@ -45,18 +45,16 @@ void
 ctrl_highscore(int p_exp, int sec_elapsed)
 {
   int p_score;
-  char * filename, p_name[P_MAXNAMELEN];
+  char * filepath, p_name[P_MAXNAMELEN];
   FILE * f_sc;
   SCORES * sc;
-  struct passwd * passwd;
   WINDOW * w_name;
 
-  passwd = getpwuid(getuid());
+  /* Allocate 11 (SCOREARRAYSIZE) elements instead of 10 (SCORESIZE) since we'll
+   * write in the 11. element of the score array */
   sc = calloc(SCOREARRAYSIZE, sizeof(SCORES));
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.acsc", 6);
-
+  filepath = get_highscore_path();
+  write_log(LOG_DEBUG, "%s:\n\tfilepath: %s\n", __func__, filepath);
   p_score = p_exp + sec_elapsed / 2;
   /* The highscore has 10 entries, the scores array has 11. The current score
    * and player name are copied to the last index of the array, which then gets
@@ -85,12 +83,12 @@ ctrl_highscore(int p_exp, int sec_elapsed)
   strcpy(sc[SCORESIZE].name, p_name);
   sc[SCORESIZE].score = p_score;
 
-  f_sc = fopen(filename, "r+");
+  f_sc = fopen(filepath, "r+");
   if (f_sc == NULL)
   {
     write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
-              __func__, filename);
-    f_sc = fopen(filename, "w+");
+              __func__, filepath);
+    f_sc = fopen(filepath, "w+");
     write_log(LOG_VERBOSE, "\tCreated file %p\n", (void *) f_sc);
 
     qsort(sc, SCOREARRAYSIZE, sizeof(SCORES), cmp_scores);
@@ -99,7 +97,7 @@ ctrl_highscore(int p_exp, int sec_elapsed)
   else
   {
     write_log(LOG_VERBOSE, "%s:\n\tReading scores from %s\n", __func__,
-              filename);
+              filepath);
     fread(sc, sizeof(SCORES), SCORESIZE, f_sc);
     for (int i = 0; i < SCOREARRAYSIZE; i++)
     {
@@ -113,68 +111,116 @@ ctrl_highscore(int p_exp, int sec_elapsed)
   }
 
   write_log(LOG_VERBOSE, "\tScores written to file %p (%s)\n", (void *) f_sc,
-            filename);
+            filepath);
   fclose(f_sc);
   f_sc = NULL;
-  _free(filename);
+  _free(filepath);
   _free(sc);
+}
+
+// Returns the path to the highscore file
+char *
+get_highscore_path(void)
+{
+  char * filepath;
+
+  if (getenv("XDG_DATA_HOME") != NULL)
+  {
+    write_log(LOG_VERBOSE, "%s:\n\tXDG_DATA_HOME is set\n", __func__);
+    filepath = malloc(strlen(getenv("XDG_DATA_HOME"))
+                      + strlen("/ac-scores.dat") + sizeof('\0'));
+    strncpy(filepath, getenv("XDG_DATA_HOME"),
+            strlen(getenv("XDG_DATA_HOME")) + sizeof('\0'));
+    strncat(filepath, "/ac-scores.dat", 14);
+  }
+  else
+  {
+    char * dirpath;
+    struct passwd * passwd;
+
+    write_log(LOG_VERBOSE, "%s:\n\tXDG_DATA_HOME isn't set, falling back to "
+              "$HOME/.local/share\n", __func__);
+    passwd = getpwuid(getuid());
+    dirpath = malloc(strlen(passwd->pw_dir) + strlen("/.local/share")
+                     + sizeof('\0'));
+    strncpy(dirpath, passwd->pw_dir, strlen(passwd->pw_dir) + sizeof('\0'));
+    strncat(dirpath, "/.local", 7);
+    if (mkdir(dirpath, 0755) == -1)
+    {
+      write_log(LOG_INFO, "%s:\n\tDirectory %s already exists\n", __func__,
+                dirpath);
+    }
+    else
+    {
+      write_log(LOG_INFO, "%s:\n\tCreating directory %s\n", __func__, dirpath);
+    }
+    strncat(dirpath, "/share", 6);
+    if (mkdir(dirpath, 0755) == -1)
+    {
+      write_log(LOG_INFO, "%s:\n\tDirectory %s already exists\n", __func__,
+                dirpath);
+    }
+    else
+    {
+      write_log(LOG_INFO, "%s:\n\tCreating directory %s\n", __func__, dirpath);
+    }
+    filepath = malloc(strlen(dirpath) + strlen("/ac-scores.dat")
+                      + sizeof('\0'));
+    strncpy(filepath, dirpath, strlen(dirpath) + sizeof('\0'));
+    strncat(filepath, "/ac-scores.dat", 14);
+    _free(dirpath);
+  }
+
+  write_log(LOG_DEBUG, "\tfilepath: %s\n", filepath);
+  return filepath;
 }
 
 // Displays the current highscore
 void
 show_highscore(void)
 {
-  WINDOW * w_scores;
-  COORDS co;
-  SCORES * sc;
   FILE * f_sc;
-  char * filename;
-  struct passwd * passwd;
+  char * filepath;
 
-  passwd = getpwuid(getuid());
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.acsc") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.acsc", 6);
-  sc = calloc(SCORESIZE, sizeof(SCORES));
-
-  f_sc = fopen(filename, "r");
+  filepath = get_highscore_path();
+  f_sc = fopen(filepath, "r");
   if (f_sc == NULL)
   {
-    write_log(LOG_INFO, "%s:\n\tUnable to open file %s\n", __func__, filename);
-    // Fill the array with empty values, ignore the file error
-    for (int i = 0; i < SCORESIZE; i++)
-    {
-      strcpy(sc[i].name, "-");
-      sc[i].score = 0;
-    }
+    write_log(LOG_INFO, "%s:\n\tUnable to open file %s\n", __func__, filepath);
   }
   else
   {
+    WINDOW * w_scores;
+    COORDS co;
+    SCORES * sc;
+
+    sc = calloc(SCORESIZE, sizeof(SCORES));
     write_log(LOG_VERBOSE, "%s:\n\tReading scores from %s\n", __func__,
-              filename);
+              filepath);
     fread(sc, sizeof(SCORES), SCORESIZE, f_sc);
     fclose(f_sc);
+
+    w_scores = create_win(CON_TERMY, CON_TERMX, 0, 0, 1, CP_WHITEBLACK);
+    co = get_geometry(w_scores);
+    set_winstr(w_scores, (co.x - (int) strlen("HIGHSCORE")) / 2, 1, A_BOLD,
+              CP_WHITEBLACK, "HIGHSCORE");
+    for (int i = 0; i < SCORESIZE; i++)
+    {
+      /* Start from the sixth line, looks better than from the third; also show
+      * the scores right-aligned */
+      set_winstr(w_scores, 1, 6 + i, A_NORMAL, CP_WHITEBLACK, sc[i].name);
+      set_winstr(w_scores, co.x - get_intlen(sc[i].score) - 1, 6 + i, A_NORMAL,
+                CP_WHITEBLACK, "%d", sc[i].score);
+    }
+    set_winstr(w_scores, (co.x - (int) strlen("PRESS ENTER TO CONTINUE")) / 2,
+              co.y - 2, A_BLINK, CP_REDBLACK, "PRESS ENTER TO CONTINUE");
+
+    set_inputmode(IM_KEYPRESS);
+    while (getch() != '\n');
+    rm_win(w_scores);
+    _free(sc);
   }
 
-  w_scores = create_win(CON_TERMY, CON_TERMX, 0, 0, 1, CP_WHITEBLACK);
-  co = get_geometry(w_scores);
-  set_winstr(w_scores, (co.x - (int) strlen("HIGHSCORE")) / 2, 1, A_BOLD,
-             CP_WHITEBLACK, "HIGHSCORE");
-  for (int i = 0; i < SCORESIZE; i++)
-  {
-    /* Start from the sixth line, looks better than from the third; also show
-     * the scores right-aligned */
-    set_winstr(w_scores, 1, 6 + i, A_NORMAL, CP_WHITEBLACK, sc[i].name);
-    set_winstr(w_scores, co.x - get_intlen(sc[i].score) - 1, 6 + i, A_NORMAL,
-               CP_WHITEBLACK, "%d", sc[i].score);
-  }
-  set_winstr(w_scores, (co.x - (int) strlen("PRESS ENTER TO CONTINUE")) / 2,
-             co.y - 2, A_BLINK, CP_REDBLACK, "PRESS ENTER TO CONTINUE");
-
-  set_inputmode(IM_KEYPRESS);
-  while (getch() != '\n');
-  rm_win(w_scores);
   f_sc = NULL;
-  _free(filename);
-  _free(sc);
+  _free(filepath);
 }

@@ -1,7 +1,7 @@
 CC=cc
 # Development CFLAGS (clang)
 CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Weverything -Wno-padded -pedantic \
-			 -pedantic-errors -c
+			 -Wno-format-nonliteral -pedantic-errors -c
 # Development CFLAGS (gcc)
 #CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Werror -Wfatal-errors -Wall \
 	-pedantic-errors -Wextra -Wformat=2 -Wswitch-default -Wswitch-enum \

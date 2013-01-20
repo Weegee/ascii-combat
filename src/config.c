@@ -25,36 +25,30 @@ void
 ctrl_config(void)
 {
   FILE * f_cfg;
-  char * filename;
-  struct passwd * passwd;
+  char * filepath;
 
-  passwd = getpwuid(getuid());
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.accfg", 7);
-
-  write_log(LOG_VERBOSE, "%s:\n\tWriting config to %s\n", __func__, filename);
-  f_cfg = fopen(filename, "w");
+  filepath = get_config_path();
+  write_log(LOG_VERBOSE, "%s:\n\tWriting config to %s\n", __func__, filepath);
+  f_cfg = fopen(filepath, "w");
   fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
   fclose(f_cfg);
   f_cfg = NULL;
-  _free(filename);
+  _free(filepath);
 }
 
-// Initialises the config struct
-void
-init_config(void)
+// Returns the path to the configuration file
+char *
+get_config_path(void)
 {
-  FILE * f_cfg;
   char * filepath;
 
-  cfg = malloc(sizeof(CONFIG));
   if (getenv("XDG_CONFIG_HOME") != NULL)
   {
+    write_log(LOG_VERBOSE, "%s:\n\tXDG_CONFIG is set\n", __func__);
     filepath = malloc(strlen(getenv("XDG_CONFIG_HOME"))
                       + strlen("/ascii-combat.conf") + sizeof('\0'));
     strncpy(filepath, getenv("XDG_CONFIG_HOME"),
-            strlen(getenv("XDG_CONFIG_HOME")));
+            strlen(getenv("XDG_CONFIG_HOME")) + sizeof('\0'));
     strncat(filepath, "/ascii-combat.conf", 18);
   }
   else
@@ -65,7 +59,7 @@ init_config(void)
     passwd = getpwuid(getuid());
     dirpath = malloc(strlen(passwd->pw_dir) + strlen("/.config")
                      + sizeof('\0'));
-    strncpy(dirpath, passwd->pw_dir, strlen(passwd->pw_dir));
+    strncpy(dirpath, passwd->pw_dir, strlen(passwd->pw_dir) + sizeof('\0'));
     strncat(dirpath, "/.config", 8);
     if (mkdir(dirpath, 0755) == -1)
     {
@@ -78,10 +72,24 @@ init_config(void)
     }
     filepath = malloc(strlen(dirpath) + strlen("/ascii-combat.conf")
                       + sizeof('\0'));
-    strncpy(filepath, dirpath, strlen(dirpath));
+    strncpy(filepath, dirpath, strlen(dirpath) + sizeof('\0'));
     strncat(filepath, "/ascii-combat.conf", 18);
     _free(dirpath);
   }
+
+  write_log(LOG_DEBUG, "\tfilepath: %s\n", filepath);
+  return filepath;
+}
+
+// Initialises the config struct
+void
+init_config(void)
+{
+  FILE * f_cfg;
+  char * filepath;
+
+  cfg = malloc(sizeof(CONFIG));
+  filepath = get_config_path();
 
   f_cfg = fopen(filepath, "r");
   if (f_cfg == NULL)
