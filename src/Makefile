@@ -1,6 +1,9 @@
 CC=cc
-# Development CFLAGS
-CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Werror -Wfatal-errors -Wall \
+# Development CFLAGS (clang)
+CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Weverything -Wno-padded -pedantic \
+			 -pedantic-errors -c
+# Development CFLAGS (gcc)
+#CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Werror -Wfatal-errors -Wall \
 	-pedantic-errors -Wextra -Wformat=2 -Wswitch-default -Wswitch-enum \
 	-Wunused-parameter -Wstrict-overflow=5 -Wfloat-equal -Wundef -Wshadow \
 	-Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion \

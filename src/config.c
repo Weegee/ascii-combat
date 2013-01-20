@@ -46,23 +46,51 @@ void
 init_config(void)
 {
   FILE * f_cfg;
-  char * filename;
-  struct passwd * passwd;
+  char * filepath;
 
   cfg = malloc(sizeof(CONFIG));
-  passwd = getpwuid(getuid());
-  filename = malloc(strlen(passwd->pw_dir) + strlen("/.accfg") + sizeof('\0'));
-  strcpy(filename, passwd->pw_dir);
-  strncat(filename, "/.accfg", 7);
+  if (getenv("XDG_CONFIG_HOME") != NULL)
+  {
+    filepath = malloc(strlen(getenv("XDG_CONFIG_HOME"))
+                      + strlen("/ascii-combat.conf") + sizeof('\0'));
+    strncpy(filepath, getenv("XDG_CONFIG_HOME"),
+            strlen(getenv("XDG_CONFIG_HOME")));
+    strncat(filepath, "/ascii-combat.conf", 18);
+  }
+  else
+  {
+    char * dirpath;
+    struct passwd * passwd;
 
-  f_cfg = fopen(filename, "r");
+    passwd = getpwuid(getuid());
+    dirpath = malloc(strlen(passwd->pw_dir) + strlen("/.config")
+                     + sizeof('\0'));
+    strncpy(dirpath, passwd->pw_dir, strlen(passwd->pw_dir));
+    strncat(dirpath, "/.config", 8);
+    if (mkdir(dirpath, 0755) == -1)
+    {
+      write_log(LOG_INFO, "%s:\n\tDirectory %s already exists\n", __func__,
+                dirpath);
+    }
+    else
+    {
+      write_log(LOG_INFO, "%s:\n\tCreating directory %s\n", __func__, dirpath);
+    }
+    filepath = malloc(strlen(dirpath) + strlen("/ascii-combat.conf")
+                      + sizeof('\0'));
+    strncpy(filepath, dirpath, strlen(dirpath));
+    strncat(filepath, "/ascii-combat.conf", 18);
+    _free(dirpath);
+  }
+
+  f_cfg = fopen(filepath, "r");
   if (f_cfg == NULL)
   {
     write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
-              __func__, filename);
-    f_cfg = fopen(filename, "w");
+              __func__, filepath);
+    f_cfg = fopen(filepath, "w");
     write_log(LOG_VERBOSE, "\tCreated file %p\n\tWriting default config to %s\n",
-              (void *) f_cfg, filename);
+              (void *) f_cfg, filepath);
 
     cfg->up = 'w';
     cfg->down = 's';
@@ -78,7 +106,7 @@ init_config(void)
   else
   {
     write_log(LOG_VERBOSE, "%s:\n\tReading configuration from %s\n", __func__,
-              filename);
+              filepath);
     fread(cfg, sizeof(CONFIG), 1, f_cfg);
   }
 
@@ -89,5 +117,5 @@ init_config(void)
             cfg->prevw, cfg->inv);
   fclose(f_cfg);
   f_cfg = NULL;
-  _free(filename);
+  _free(filepath);
 }
