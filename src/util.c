@@ -42,7 +42,7 @@ get_randint(int min, int max)
   return min + rand() % (max - min + 1);
 }
 
-// Prints debug messages to the log file
+// Prints messages to the log file
 void
 write_log(int level, const char * str, ...)
 {
