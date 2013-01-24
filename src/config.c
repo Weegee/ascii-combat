@@ -1,5 +1,5 @@
 /* config.c: Configuration control.
- * Copyright (C) 2011, 2012 Weegee
+ * Copyright (C) 2011 - 2013 Weegee
  *
  * This file is part of ASCII Combat.
  *
@@ -19,22 +19,6 @@
 #include "config.h"
 
 CONFIG * cfg;
-
-// Stores the config struct to a config file
-void
-ctrl_config(void)
-{
-  FILE * f_cfg;
-  char * filepath;
-
-  filepath = get_config_path();
-  write_log(LOG_VERBOSE, "%s:\n\tWriting config to %s\n", __func__, filepath);
-  f_cfg = fopen(filepath, "w");
-  fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
-  fclose(f_cfg);
-  f_cfg = NULL;
-  _free(filepath);
-}
 
 // Returns the path to the configuration file
 char *
@@ -81,9 +65,9 @@ get_config_path(void)
   return filepath;
 }
 
-// Initialises the config struct
+// Initialises the config struct by reading the configuration file
 void
-init_config(void)
+read_config(void)
 {
   FILE * f_cfg;
   char * filepath;
@@ -96,9 +80,7 @@ init_config(void)
   {
     write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
               __func__, filepath);
-    f_cfg = fopen(filepath, "w");
-    write_log(LOG_VERBOSE, "\tCreated file %p\n\tWriting default config to %s\n",
-              (void *) f_cfg, filepath);
+    write_log(LOG_VERBOSE, "\tWriting default config to %s\n", filepath);
 
     cfg->up = 'w';
     cfg->down = 's';
@@ -109,13 +91,15 @@ init_config(void)
     cfg->prevw = 'e';
     cfg->inv = 'f';
 
-    fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
+    write_config();
   }
   else
   {
     write_log(LOG_VERBOSE, "%s:\n\tReading configuration from %s\n", __func__,
               filepath);
     fread(cfg, sizeof(CONFIG), 1, f_cfg);
+    fclose(f_cfg);
+    f_cfg = NULL;
   }
 
   write_log(LOG_DEBUG, "\tcfg->up: %d\n\tcfg->down: %d"
@@ -123,6 +107,20 @@ init_config(void)
             "\n\tcfg->nextw: %d\n\tcfg->prevw: %d\n\tcfg->inv: %d\n",
             cfg->up, cfg->down, cfg->left, cfg->right, cfg->use, cfg->nextw,
             cfg->prevw, cfg->inv);
+  _free(filepath);
+}
+
+// Writes the config struct to the config file
+void
+write_config(void)
+{
+  FILE * f_cfg;
+  char * filepath;
+
+  filepath = get_config_path();
+  write_log(LOG_VERBOSE, "%s:\n\tWriting config to %s\n", __func__, filepath);
+  f_cfg = fopen(filepath, "w");
+  fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
   fclose(f_cfg);
   f_cfg = NULL;
   _free(filepath);

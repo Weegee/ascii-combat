@@ -1,5 +1,5 @@
 /* game.h: Declarations for game.c.
- * Copyright (C) 2011, 2012 Weegee
+ * Copyright (C) 2011 - 2013 Weegee
  *
  * This file is part of ASCII Combat.
  *
@@ -46,6 +46,7 @@ void run_game(void);
 void show_message(const char * msg, ...);
 void show_options(void);
 bool show_prompt(const char * msg, ...);
+void show_splashscreen(void);
 void show_startmenu(void);
 void update_status_window(WINDOW * w_status, PLAYER * p);
 

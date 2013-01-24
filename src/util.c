@@ -1,5 +1,5 @@
 /* util.c: Helper functions for several small tasks
- * Copyright (C) 2011, 2012 Weegee
+ * Copyright (C) 2011 - 2013 Weegee
  *
  * This file is part of ASCII Combat.
  *

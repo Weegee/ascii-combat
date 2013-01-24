@@ -1,5 +1,5 @@
 /* console.c: Ncurses window management.
- * Copyright (C) 2011, 2012 Weegee
+ * Copyright (C) 2011 - 2013 Weegee
  *
  * This file is part of ASCII Combat.
  *
@@ -314,7 +314,7 @@ set_winstr(WINDOW * w, int x, int y, attr_t a, short cp, const char * str, ...)
   va_start(args, str);
   /* vsnprintf returns the length of str (number of characters without \0) if
    * there isn't enough space for printing the string, which is always the case
-   * if we call vsnprintf with 0 as the size */
+   * if we call vsnprintf with 0 as the buffer size */
   len = vsnprintf(NULL, 0, str, args);
   va_end(args);
 

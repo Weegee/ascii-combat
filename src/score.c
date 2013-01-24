@@ -1,5 +1,5 @@
 /* score.c: Highscore control.
- * Copyright (C) 2011, 2012 Weegee
+ * Copyright (C) 2011 - 2013 Weegee
  *
  * This file is part of ASCII Combat.
  *

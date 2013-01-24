@@ -1,4 +1,5 @@
-CC=cc
+#CC=gcc
+CC=clang
 # Development CFLAGS (clang)
 CFLAGS=-D_GNU_SOURCE -std=c99 -ggdb3 -O0 -Weverything -Wno-padded -pedantic \
 			 -Wno-format-nonliteral -pedantic-errors -c

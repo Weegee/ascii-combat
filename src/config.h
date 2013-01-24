@@ -1,5 +1,5 @@
 /* config.h: Declarations for config.c.
- * Copyright (C) 2011, 2012 Weegee
+ * Copyright (C) 2011 - 2013 Weegee
  *
  * This file is part of ASCII Combat.
  *
@@ -31,8 +31,8 @@ typedef struct configuration
 
 extern CONFIG * cfg;
 
-void ctrl_config(void);
 char * get_config_path(void);
-void init_config(void);
+void read_config(void);
+void write_config(void);
 
 #endif

@@ -1,5 +1,5 @@
 /* game.c: Main game events and game control.
- * Copyright (C) 2011, 2012 Weegee
+ * Copyright (C) 2011 - 2013 Weegee
  *
  * This file is part of ASCII Combat.
  *
@@ -45,29 +45,7 @@ exit_game(void)
 void
 init_game(void)
 {
-  WINDOW * w_splash;
-
-  w_splash = create_win(CON_TERMY, CON_TERMX, 0, 0, true, CP_WHITEBLACK);
-  // Fancy splash screen (78 characters wide)
-  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 0, (CON_TERMX - 78) / 2, "    #     #####   #####  ### ###     #####                                    ");
-  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 1, (CON_TERMX - 78) / 2, "   # #   #     # #     #  #   #     #     #  ####  #    # #####    ##   ##### ");
-  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 2, (CON_TERMX - 78) / 2, "  #   #  #       #        #   #     #       #    # ##  ## #    #  #  #    #   ");
-  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 3, (CON_TERMX - 78) / 2, " #     #  #####  #        #   #     #       #    # # ## # #####  #    #   #   ");
-  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 4, (CON_TERMX - 78) / 2, " #######       # #        #   #     #       #    # #    # #    # ######   #   ");
-  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 5, (CON_TERMX - 78) / 2, " #     # #     # #     #  #   #     #     # #    # #    # #    # #    #   #   ");
-  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 6, (CON_TERMX - 78) / 2, " #     #  #####   #####  ### ###     #####   ####  #    # #####  #    #   #   ");
-  // ASCII art logo has 7 rows
-  for (int i = 0; i <= 6; i++)
-  {
-    mvwchgat(w_splash, (CON_TERMY - 7) / 2 + i, 1, 78, A_BOLD, CP_WHITERED,
-             NULL);
-  }
-  set_winstr(w_splash, (CON_TERMX - strlen("PRESS ENTER TO CONTINUE")) / 2,
-             CON_TERMY - 2, A_BLINK, CP_REDBLACK, "PRESS ENTER TO CONTINUE");
-
-  set_inputmode(IM_KEYPRESS);
-  while (getch() != '\n');
-  rm_win(w_splash);
+  show_splashscreen();
   show_startmenu();
 }
 
@@ -97,10 +75,14 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
   int retval;
 
   retval = 1;
+  /* The game runs in an infinite loop which executes different functions over
+   * and over again after a set amount of time */
   gettimeofday(&ct, NULL);
   msec_elapsed = (long) (((ct.tv_sec - t->start) * 1000) + (ct.tv_usec / 1000));
   if (msec_elapsed % 100 == 0 && msec_elapsed != t->msec_elapsed)
   {
+    /* Store the last "run" in t->msec_elapsed to prevent multiple execution of
+     * the functions in one millisecond */
     t->msec_elapsed = msec_elapsed;
     t->sec_elapsed = (int) (t->msec_elapsed / 1000);
     update_status_window(lw->w_status, p);
@@ -111,7 +93,7 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
 
       if (msec_elapsed % 10000 == 0)
       {
-        p->stage++;
+        p->stage++; // TODO
         set_winstr(lw->w_game, 10, 0, A_NORMAL, CP_WHITEBLACK, "S: %02d",
                    p->stage);
       }
@@ -217,8 +199,8 @@ show_message(const char * msg, ...)
   wmove(w_msg, 0, 0);
   vw_printw(w_msg, msg, args);
   va_end(args);
-
   wrefresh(w_msg);
+
   t_freeze = pause_game();
   set_inputmode(IM_KEYPRESS);
   while (getch() != '\n');
@@ -297,9 +279,7 @@ show_options(void)
       ch = wgetch(w_prompt);
       rm_win(w_prompt);
 
-      if ((ch >= 'a' && ch <= 'z') ||
-          (ch >= '0' && ch <= '9') ||
-          (ch == ' '))
+      if (isalnum(ch) || (ch == ' '))
       {
         if ((ch != cfg->up) &&
             (ch != cfg->down) &&
@@ -347,7 +327,7 @@ show_options(void)
   rm_menu(m);
   rm_win(w_sub);
   rm_win(w_opt);
-  ctrl_config();
+  write_config();
 }
 
 // show_message with input control
@@ -399,6 +379,34 @@ show_prompt(const char * msg, ...)
   rm_win(w_menu);
   rm_win(w_msg);
   return retval;
+}
+
+// Shows a splashscreen at start
+void
+show_splashscreen(void)
+{
+  WINDOW * w_splash;
+
+  w_splash = create_win(CON_TERMY, CON_TERMX, 0, 0, true, CP_WHITEBLACK);
+  // Fancy splash screen (78 characters wide)
+  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 0, (CON_TERMX - 78) / 2, "    #     #####   #####  ### ###     #####                                    ");
+  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 1, (CON_TERMX - 78) / 2, "   # #   #     # #     #  #   #     #     #  ####  #    # #####    ##   ##### ");
+  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 2, (CON_TERMX - 78) / 2, "  #   #  #       #        #   #     #       #    # ##  ## #    #  #  #    #   ");
+  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 3, (CON_TERMX - 78) / 2, " #     #  #####  #        #   #     #       #    # # ## # #####  #    #   #   ");
+  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 4, (CON_TERMX - 78) / 2, " #######       # #        #   #     #       #    # #    # #    # ######   #   ");
+  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 5, (CON_TERMX - 78) / 2, " #     # #     # #     #  #   #     #     # #    # #    # #    # #    #   #   ");
+  mvwprintw(w_splash, (CON_TERMY - 7) / 2 + 6, (CON_TERMX - 78) / 2, " #     #  #####   #####  ### ###     #####   ####  #    # #####  #    #   #   ");
+  // ASCII art logo has 7 rows
+  for (int i = 0; i <= 6; i++)
+  {
+    mvwchgat(w_splash, (CON_TERMY - 7) / 2 + i, 1, 78, A_BOLD, CP_WHITERED,
+             NULL);
+  }
+  set_winstr(w_splash, (CON_TERMX - strlen("PRESS ENTER TO CONTINUE")) / 2,
+             CON_TERMY - 2, A_BLINK, CP_REDBLACK, "PRESS ENTER TO CONTINUE");
+  set_inputmode(IM_KEYPRESS);
+  while (getch() != '\n');
+  rm_win(w_splash);
 }
 
 // Shows the menu screen
