@@ -20,6 +20,7 @@
 #define GAME_H
 
 #include <ctype.h>
+// gettimeofday()
 #include <sys/time.h>
 #include <time.h>
 
@@ -38,9 +39,9 @@ void ctrl_timer(WINDOW * w_game);
 void exit_game(void);
 void init_game(void);
 void init_timer(WINDOW * w);
-int loop_game(WINDOWLIST * lw, PLAYER * p);
+int loop_game(PLAYER * p);
 int pause_game(void);
-void quit_game(WINDOWLIST * lw, PLAYER * p);
+void quit_game(PLAYER * p);
 void resume_game(int t_freeze);
 void run_game(void);
 void show_message(const char * msg, ...);

@@ -68,7 +68,7 @@ init_timer(WINDOW * w_game)
 
 // Main game loop, calls all control functions after a certain time
 int
-loop_game(WINDOWLIST * lw, PLAYER * p)
+loop_game(PLAYER * p)
 {
   struct timeval ct;
   long msec_elapsed;
@@ -85,7 +85,7 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
      * the functions in one millisecond */
     t->msec_elapsed = msec_elapsed;
     t->sec_elapsed = (int) (t->msec_elapsed / 1000);
-    update_status_window(lw->w_status, p);
+    //update_status_window(lw->w_status, p);
 
     if (msec_elapsed % 1000 == 0)
     {
@@ -100,7 +100,7 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
     }
   }
 
-  ctrl_player(lw, p);
+  ctrl_player(p);
   if (p->quit)
   {
     write_log(LOG_INFO, "%s:\n\tPlayer wants to quit, stopping ...\n", __func__);
@@ -113,12 +113,6 @@ loop_game(WINDOWLIST * lw, PLAYER * p)
 
     t_freeze = pause_game();
     show_inventory(p);
-    redrawwin(lw->w_field);
-    redrawwin(lw->w_game);
-    redrawwin(lw->w_status);
-    wrefresh(lw->w_field);
-    wrefresh(lw->w_game);
-    wrefresh(lw->w_status);
     resume_game(t_freeze);
   }
 
@@ -142,7 +136,7 @@ pause_game(void)
 
 // Removes all entities, lists and windows
 void
-quit_game(WINDOWLIST * lw, PLAYER * p)
+quit_game(PLAYER * p)
 {
   rm_win(lw->w_field);
   rm_win(lw->w_game);
@@ -174,16 +168,15 @@ void
 run_game(void)
 {
   PLAYER * p;
-  WINDOWLIST * lw;
 
   init_field();
-  lw = init_windows();
-  p = create_player(lw);
+  init_windows();
+  p = create_player();
   p->stage = 1;
   set_winstr(lw->w_game, 10, 0, A_NORMAL, CP_WHITEBLACK, "S: %02d", p->stage);
   init_timer(lw->w_game);
-  while (loop_game(lw, p));
-  quit_game(lw, p);
+  while (loop_game(p));
+  quit_game(p);
 }
 
 // Displays text in a message window (max. 160 characters)
@@ -207,6 +200,9 @@ show_message(const char * msg, ...)
   resume_game(t_freeze);
   wbkgdset(w_msg, CP_WHITEBLACK);
   rm_win(w_msg);
+
+  redrawwin(lw->w_status);
+  wrefresh(lw->w_status);
 }
 
 // Shows an options dialogue
@@ -378,6 +374,9 @@ show_prompt(const char * msg, ...)
   rm_menu(m);
   rm_win(w_menu);
   rm_win(w_msg);
+  redrawwin(lw->w_status);
+  wrefresh(lw->w_status);
+
   return retval;
 }
 

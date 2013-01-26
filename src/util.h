@@ -22,9 +22,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+// log10()
 #include <math.h>
+// getuid()
 #include <unistd.h>
+// va_args
 #include <stdarg.h>
+// mkdir()
 #include <sys/stat.h>
 
 enum loglevel

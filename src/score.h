@@ -19,6 +19,7 @@
 #ifndef SCORE_H
 #define SCORE_H
 
+// struct passwd
 #include <pwd.h>
 
 #include "console.h"

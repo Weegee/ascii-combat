@@ -19,6 +19,7 @@
 #include "console.h"
 
 int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
+WINDOWLIST * lw;
 
 /* Creates a ncurses menu using the specified windows, then sets the given
  * attributes */
@@ -195,10 +196,9 @@ init_field(void)
 }
 
 // Initialises the game/status windows
-WINDOWLIST *
+void
 init_windows(void)
 {
-  WINDOWLIST * lw;
   COORDS co;
 
   lw = malloc(sizeof(WINDOWLIST));
@@ -221,7 +221,6 @@ init_windows(void)
   write_log(LOG_DEBUG, "%s:\n\tInitialised windows\n\tlw: %p\n\tw_game: %p"
             "\n\tw_field: %p\n\tw_status: %p\n", __func__, (void *) lw,
             (void *) lw->w_game, (void *) lw->w_field, (void *) lw->w_status);
-  return lw;
 }
 
 // Destroys a ncurses menu

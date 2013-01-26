@@ -63,6 +63,7 @@ typedef struct windowlist
 } WINDOWLIST;
 
 extern int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];
+extern WINDOWLIST * lw;
 
 MENU * create_menu(WINDOW * w_menu, WINDOW * w_sub, const char ** items,
                    int num, chtype cp_sel, chtype cp_unsel);
@@ -73,7 +74,7 @@ int ctrl_menu(WINDOW * w, MENU * m);
 COORDS get_geometry(WINDOW * w);
 void init_console(void);
 void init_field(void);
-WINDOWLIST * init_windows(void);
+void init_windows(void);
 void rm_menu(MENU * m);
 void rm_win(WINDOW * w);
 void set_inputmode(int mode);

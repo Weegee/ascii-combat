@@ -20,7 +20,7 @@
 
 // Initialises the player character
 PLAYER *
-create_player(WINDOWLIST * lw)
+create_player(void)
 {
   PLAYER * p;
 
@@ -50,7 +50,7 @@ create_player(WINDOWLIST * lw)
 
 // Controls the player input
 void
-ctrl_player(WINDOWLIST * lw, PLAYER * p)
+ctrl_player(PLAYER * p)
 {
   char input;
 
@@ -66,7 +66,7 @@ ctrl_player(WINDOWLIST * lw, PLAYER * p)
     p->ch = '^';
     if (p->y > CON_FIELDMINY)
     {
-      mv_player(lw, p, DIR_UP);
+      mv_player(p, DIR_UP);
     }
     else
     {
@@ -78,7 +78,7 @@ ctrl_player(WINDOWLIST * lw, PLAYER * p)
     p->ch = 'v';
     if (p->y < CON_FIELDMAXY)
     {
-      mv_player(lw, p, DIR_DOWN);
+      mv_player(p, DIR_DOWN);
     }
     else
     {
@@ -90,7 +90,7 @@ ctrl_player(WINDOWLIST * lw, PLAYER * p)
     p->ch = '<';
     if (p->x > CON_FIELDMINX)
     {
-      mv_player(lw, p, DIR_LEFT);
+      mv_player(p, DIR_LEFT);
     }
     else
     {
@@ -102,7 +102,7 @@ ctrl_player(WINDOWLIST * lw, PLAYER * p)
     p->ch = '>';
     if (p->x < CON_FIELDMAXX)
     {
-      mv_player(lw, p, DIR_RIGHT);
+      mv_player(p, DIR_RIGHT);
     }
     else
     {
@@ -146,7 +146,7 @@ ctrl_player(WINDOWLIST * lw, PLAYER * p)
 
 // Moves the player on the playing field
 void
-mv_player(WINDOWLIST * lw, PLAYER * p, int dir)
+mv_player(PLAYER * p, int dir)
 {
   write_log(LOG_DEBUG, "%s:\n\tMoving player %p\n\tOld x: %d\n\tOld y: %d\n",
             __func__, (void *) p, p->x, p->y);
@@ -229,4 +229,12 @@ show_inventory(PLAYER * p)
   getch();
   rm_win(w_inv);
   p->inv = false;
+
+  // w_inv overlapped all windows, so we have to redraw them
+  redrawwin(lw->w_field);
+  redrawwin(lw->w_game);
+  redrawwin(lw->w_status);
+  wrefresh(lw->w_field);
+  wrefresh(lw->w_game);
+  wrefresh(lw->w_status);
 }
