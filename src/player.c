@@ -111,7 +111,7 @@ ctrl_player(PLAYER * p)
   }
   else if (input == cfg->use)
   {
-    set_player_dmg(lw->w_field, p, 10); // Just for testing purposes
+    set_player_dmg(p, 10); // Just for testing purposes
   }
   else if (input == cfg->nextw)
   {
@@ -184,8 +184,10 @@ mv_player(PLAYER * p, int dir)
 // Sets player damage, shows a damage "animation"
 // TODO: The "animation" should disappear after one second
 void
-set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg)
+set_player_dmg(PLAYER * p, int dmg)
 {
+  short colour;
+
   write_log(LOG_DEBUG, "%s:\n\tPlayer %p receives %d damage\n\tp->hp: %d"
             "\n\tp->armour: %d\n", __func__, (void *) p, dmg, p->hp, p->armour);
   if (p->armour > 0)
@@ -210,7 +212,44 @@ set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg)
   p->hp = p->hp < 0 ? 0 : p->hp;
   p->armour = p->armour < 0 ? 0 : p->armour;
   write_log(LOG_DEBUG, "\tNew p->hp: %d\n\tp->armour: %d\n", p->hp, p->armour);
-  set_winchar(w_field, p->x, p->y, A_BOLD, CP_WHITERED, p->ch);
+  set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITERED, p->ch);
+
+  // Erase the previous values
+  mvwchgat(lw->w_status, 0, lw->co_status.x / 3 + 9, 3, A_INVIS, CP_WHITEBLACK,
+           NULL);
+  mvwchgat(lw->w_status, 1, lw->co_status.x / 3 + 9, 3, A_INVIS, CP_WHITEBLACK,
+           NULL);
+
+  // Use different colours for different health/armour values
+  if (p->hp <= 66 && p->hp > 33)
+  {
+    colour = CP_YELLOWBLACK;
+  }
+  else if (p->hp <= 33)
+  {
+    colour = CP_REDBLACK;
+  }
+  else
+  {
+    colour = CP_GREENBLACK;
+  }
+  set_winstr(lw->w_status, lw->co_status.x / 3 + 9, 0, A_NORMAL, colour, "%d",
+             p->hp);
+
+  if (p->armour <= 66 && p->armour > 33)
+  {
+    colour = CP_YELLOWBLACK;
+  }
+  else if (p->armour <= 33)
+  {
+    colour = CP_REDBLACK;
+  }
+  else
+  {
+    colour = CP_GREENBLACK;
+  }
+  set_winstr(lw->w_status, lw->co_status.x / 3 + 9, 1, A_NORMAL, colour, "%d",
+             p->armour);
 }
 
 // Shows the inventory

@@ -22,11 +22,12 @@ TIMER * t;
 
 // Displays the elapsed seconds since the game's start, DEBUG ONLY
 void
-ctrl_timer(WINDOW * w_game)
+ctrl_timer(void)
 {
   if (LOG_LEVEL >= LOG_VERBOSE)
   {
-    set_winstr(w_game, 17, 0, A_NORMAL, CP_WHITEBLACK, "T: %d", t->sec_elapsed);
+    set_winstr(lw->w_game, 17, 0, A_NORMAL, CP_WHITEBLACK, "T: %d",
+               t->sec_elapsed);
   }
 }
 
@@ -51,7 +52,7 @@ init_game(void)
 
 // Initialises the timer
 void
-init_timer(WINDOW * w_game)
+init_timer(void)
 {
   struct timeval ct;
 
@@ -61,7 +62,7 @@ init_timer(WINDOW * w_game)
   t->msec_elapsed = 0;
   t->sec_elapsed = 0;
 
-  ctrl_timer(w_game);
+  ctrl_timer();
   write_log(LOG_INFO, "%s:\n\tGame started at %d\n", __func__, t->start);
   write_log(LOG_DEBUG, "\tCurrent time: %d.%d\n", ct.tv_sec, ct.tv_usec);
 }
@@ -85,11 +86,10 @@ loop_game(PLAYER * p)
      * the functions in one millisecond */
     t->msec_elapsed = msec_elapsed;
     t->sec_elapsed = (int) (t->msec_elapsed / 1000);
-    //update_status_window(lw->w_status, p);
 
     if (msec_elapsed % 1000 == 0)
     {
-      ctrl_timer(lw->w_game);
+      ctrl_timer();
 
       if (msec_elapsed % 10000 == 0)
       {
@@ -174,7 +174,8 @@ run_game(void)
   p = create_player();
   p->stage = 1;
   set_winstr(lw->w_game, 10, 0, A_NORMAL, CP_WHITEBLACK, "S: %02d", p->stage);
-  init_timer(lw->w_game);
+  init_timer();
+  init_status_window(p);
   while (loop_game(p));
   quit_game(p);
 }
@@ -469,57 +470,22 @@ show_startmenu(void)
 
 // Updates the status window at the bottom of the screen
 void
-update_status_window(WINDOW * w_status, PLAYER * p)
+init_status_window(PLAYER * p)
 {
-  COORDS co;
-  short colour;
-
-  co = get_geometry(w_status);
-
-  /* Prevent flickering by only calling wrefresh once (that's why we don't use
-   * set_winstr here) */
-  werase(w_status);
-  mvwprintw(w_status, 0, 1, "EUS PLACEHOLDER");
-  mvwchgat(w_status, 0, 1, 3, A_BOLD, CP_WHITEBLACK, NULL);
-  mvwprintw(w_status, 1, 1, "EXP PLACEHOLDER");
-  mvwchgat(w_status, 1, 1, 3, A_BOLD, CP_WHITEBLACK, NULL);
-
-  mvwprintw(w_status, 0, co.x / 3 + 2, "HEALTH %d", p->hp);
-  mvwchgat(w_status, 0, co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
-  if (p->hp <= 66 && p->hp > 33)
-  {
-    colour = CP_YELLOWBLACK;
-  }
-  else if (p->hp <= 33)
-  {
-    colour = CP_REDBLACK;
-  }
-  else
-  {
-    colour = CP_GREENBLACK;
-  }
-  mvwchgat(w_status, 0, co.x / 3 + 9, get_intlen(p->hp), A_NORMAL, colour,
-           NULL);
-  mvwprintw(w_status, 1, co.x / 3 + 2, "ARMOUR %d", p->armour);
-  mvwchgat(w_status, 1, co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
-  if (p->armour <= 66 && p->armour > 33)
-  {
-    colour = CP_YELLOWBLACK;
-  }
-  else if (p->armour <= 33)
-  {
-    colour = CP_REDBLACK;
-  }
-  else
-  {
-    colour = CP_GREENBLACK;
-  }
-  mvwchgat(w_status, 1, co.x / 3 + 9, get_intlen(p->armour), A_NORMAL,
-           colour, NULL);
-
-  mvwprintw(w_status, 0, 2 * co.x / 3 + 2, "WEAPON PLACEHOLDER");
-  mvwchgat(w_status, 0, 2 * co.x / 3 + 2, 6, A_BOLD, CP_WHITEBLACK, NULL);
-  mvwprintw(w_status, 1, 2 * co.x / 3 + 4, "AMMO PLACEHOLDER");
-  mvwchgat(w_status, 1, 2 * co.x / 3 + 4, 4, A_BOLD, CP_WHITEBLACK, NULL);
-  wrefresh(w_status);
+  // EUS
+  set_winstr(lw->w_status, 5, 0, A_NORMAL, CP_WHITEBLACK, "PLACEHOLDER");
+  // EXP
+  set_winstr(lw->w_status, 5, 1, A_NORMAL, CP_WHITEBLACK, "PLACEHOLDER");
+  // Health
+  set_winstr(lw->w_status, lw->co_status.x / 3 + 9, 0, A_NORMAL, CP_GREENBLACK,
+             "%d", p->hp);
+  // Armour
+  set_winstr(lw->w_status, lw->co_status.x / 3 + 9, 1, A_NORMAL, CP_GREENBLACK,
+             "%d", p->armour);
+  // Weapon
+  set_winstr(lw->w_status, 2 * lw->co_status.x / 3 + 9, 0, A_NORMAL,
+             CP_WHITEBLACK, "PLACEHOLDER");
+  // Ammo
+  set_winstr(lw->w_status, 2 * lw->co_status.x / 3 + 9, 1, A_NORMAL,
+             CP_WHITEBLACK, "PLACEHOLDER");
 }

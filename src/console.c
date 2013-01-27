@@ -199,24 +199,27 @@ init_field(void)
 void
 init_windows(void)
 {
-  COORDS co;
-
   lw = malloc(sizeof(WINDOWLIST));
 
   lw->w_game = create_win(CON_TERMY - 2, CON_TERMX, 0, 0, true, CP_WHITEBLACK);
+  lw->co_game = get_geometry(lw->w_game);
   lw->w_field = create_subwin(lw->w_game, CON_FIELDMAXY + 1, CON_FIELDMAXX + 1,
                               1, 1, false, CP_WHITEBLACK);
+  lw->co_field = get_geometry(lw->w_field);
   lw->w_status = create_win(2, CON_TERMX, 0, CON_TERMY - 2, false,
                             CP_WHITEBLACK);
-  co = get_geometry(lw->w_status);
+  lw->co_status = get_geometry(lw->w_status);
 
   set_winstr(lw->w_status, 1, 0, A_BOLD, CP_WHITEBLACK, "EUS");
   set_winstr(lw->w_status, 1, 1, A_BOLD, CP_WHITEBLACK, "EXP");
-  set_winstr(lw->w_status, co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK, "HEALTH");
-  set_winstr(lw->w_status, co.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK, "ARMOUR");
-  set_winstr(lw->w_status, 2 * co.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK,
-             "WEAPON");
-  set_winstr(lw->w_status, 2 * co.x / 3 + 4, 1, A_BOLD, CP_WHITEBLACK, "AMMO");
+  set_winstr(lw->w_status, lw->co_status.x / 3 + 2, 0, A_BOLD, CP_WHITEBLACK,
+             "HEALTH");
+  set_winstr(lw->w_status, lw->co_status.x / 3 + 2, 1, A_BOLD, CP_WHITEBLACK,
+             "ARMOUR");
+  set_winstr(lw->w_status, 2 * lw->co_status.x / 3 + 2, 0, A_BOLD,
+             CP_WHITEBLACK, "WEAPON");
+  set_winstr(lw->w_status, 2 * lw->co_status.x / 3 + 4, 1, A_BOLD,
+             CP_WHITEBLACK, "AMMO");
 
   write_log(LOG_DEBUG, "%s:\n\tInitialised windows\n\tlw: %p\n\tw_game: %p"
             "\n\tw_field: %p\n\tw_status: %p\n", __func__, (void *) lw,

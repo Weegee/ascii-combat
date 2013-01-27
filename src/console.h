@@ -60,6 +60,7 @@ typedef struct coordinates
 typedef struct windowlist
 {
   WINDOW * w_game, * w_field, * w_status;
+  COORDS co_game, co_field, co_status;
 } WINDOWLIST;
 
 extern int g_fld[CON_FIELDMAXX + 1][CON_FIELDMAXY + 1];

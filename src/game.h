@@ -35,10 +35,10 @@ typedef struct timer
 
 extern TIMER * t;
 
-void ctrl_timer(WINDOW * w_game);
+void ctrl_timer(void);
 void exit_game(void);
 void init_game(void);
-void init_timer(WINDOW * w);
+void init_timer(void);
 int loop_game(PLAYER * p);
 int pause_game(void);
 void quit_game(PLAYER * p);
@@ -49,6 +49,6 @@ void show_options(void);
 bool show_prompt(const char * msg, ...);
 void show_splashscreen(void);
 void show_startmenu(void);
-void update_status_window(WINDOW * w_status, PLAYER * p);
+void init_status_window(PLAYER * p);
 
 #endif

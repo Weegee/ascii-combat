@@ -37,7 +37,7 @@ typedef struct player
 PLAYER * create_player(void);
 void ctrl_player(PLAYER * p);
 void mv_player(PLAYER * p, int dir);
-void set_player_dmg(WINDOW * w_field, PLAYER * p, int dmg);
+void set_player_dmg(PLAYER * p, int value);
 void show_inventory(PLAYER * p);
 
 #endif
