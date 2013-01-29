@@ -30,6 +30,7 @@
 #include <stdarg.h>
 // mkdir()
 #include <sys/stat.h>
+#include <string.h>
 
 enum loglevel
 {
@@ -41,6 +42,8 @@ extern FILE * g_log;
 void _free(void * ptr);
 int get_intlen(int n);
 int get_randint(int min, int max);
+char * split_str(char * str, char delim);
+char * trim_str(char * str, char totrim);
 void write_log(int level, const char * str, ...);
 
 #endif

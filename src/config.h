@@ -20,18 +20,20 @@
 #define CONFIG_H
 
 #include <pwd.h>
-#include <string.h>
+#include <ctype.h>
 
 #include "util.h"
 
 typedef struct configuration
 {
-  char up, down, left, right, use, nextw, prevw, inv;
+  unsigned char up, down, left, right, use, next, prev, inv;
 } CONFIG;
 
 extern CONFIG * cfg;
 
 char * get_config_path(void);
+void init_config(void);
+void parse_config(FILE * f_cfg);
 void read_config(void);
 void write_config(void);
 

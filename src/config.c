@@ -65,6 +65,94 @@ get_config_path(void)
   return filepath;
 }
 
+// Writes the default values in the config struct
+void
+init_config(void)
+{
+  cfg->up = 'w';
+  cfg->down = 's';
+  cfg->left = 'a';
+  cfg->right = 'd';
+  cfg->use = ' ';
+  cfg->next = 'r';
+  cfg->prev = 'e';
+  cfg->inv = 'f';
+}
+
+// Parses the config file
+void
+parse_config(FILE * f_cfg)
+{
+  char linebuffer[50];
+
+  while (fgets(linebuffer, 50, f_cfg) != NULL)
+  {
+    char * key, * value;
+
+    if (linebuffer[0] == '#')
+    {
+      continue;
+    }
+
+    value = split_str(linebuffer, '=');
+    if (value == NULL)
+    {
+      write_log(LOG_INFO, "%s:\n\tInvalid syntax: %s\n", __func__, linebuffer);
+      continue;
+    }
+
+    key = trim_str(linebuffer, ' ');
+    value = trim_str(value, '\n');
+    value = trim_str(value, ' ');
+    value = trim_str(value, '"');
+
+    if (!isalnum(value[0]) && value[0] != ' ')
+    {
+      write_log(LOG_INFO, "%s:\n\tIllegal value '%s' for key '%s'\n",
+                __func__, value, key);
+      continue;
+    }
+
+    if (!strcmp(key, "up"))
+    {
+      cfg->up = (unsigned char) tolower(value[0]);
+    }
+    else if (!strcmp(key, "down"))
+    {
+      cfg->down = (unsigned char) tolower(value[0]);
+    }
+    else if (!strcmp(key, "left"))
+    {
+      cfg->left = (unsigned char) tolower(value[0]);
+    }
+    else if (!strcmp(key, "right"))
+    {
+      cfg->right = (unsigned char) tolower(value[0]);
+    }
+    else if (!strcmp(key, "use"))
+    {
+      cfg->use = (unsigned char) tolower(value[0]);
+    }
+    else if (!strcmp(key, "next"))
+    {
+      cfg->next = (unsigned char) tolower(value[0]);
+    }
+    else if (!strcmp(key, "prev"))
+    {
+      cfg->prev = (unsigned char) tolower(value[0]);
+    }
+    else if (!strcmp(key, "inv"))
+    {
+      cfg->inv = (unsigned char) tolower(value[0]);
+    }
+    else
+    {
+      write_log(LOG_INFO, "%s:\n\tInvalid key: %s\n", __func__, key);
+      continue;
+    }
+  }
+}
+
 // Initialises the config struct by reading the configuration file
 void
 read_config(void)
@@ -75,38 +163,29 @@ read_config(void)
   cfg = malloc(sizeof(CONFIG));
   filepath = get_config_path();
 
+  init_config();
   f_cfg = fopen(filepath, "r");
   if (f_cfg == NULL)
   {
     write_log(LOG_INFO, "%s:\n\tUnable to open file %s, creating new one\n",
               __func__, filepath);
     write_log(LOG_VERBOSE, "\tWriting default config to %s\n", filepath);
-
-    cfg->up = 'w';
-    cfg->down = 's';
-    cfg->left = 'a';
-    cfg->right = 'd';
-    cfg->use = ' ';
-    cfg->nextw = 'r';
-    cfg->prevw = 'e';
-    cfg->inv = 'f';
-
     write_config();
   }
   else
   {
     write_log(LOG_VERBOSE, "%s:\n\tReading configuration from %s\n", __func__,
               filepath);
-    fread(cfg, sizeof(CONFIG), 1, f_cfg);
+    parse_config(f_cfg);
     fclose(f_cfg);
     f_cfg = NULL;
   }
 
   write_log(LOG_DEBUG, "\tcfg->up: %d\n\tcfg->down: %d"
             "\n\tcfg->left: %d\n\tcfg->right: %d\n\tcfg->use: %d"
-            "\n\tcfg->nextw: %d\n\tcfg->prevw: %d\n\tcfg->inv: %d\n",
-            cfg->up, cfg->down, cfg->left, cfg->right, cfg->use, cfg->nextw,
-            cfg->prevw, cfg->inv);
+            "\n\tcfg->next: %d\n\tcfg->prev: %d\n\tcfg->inv: %d\n",
+            cfg->up, cfg->down, cfg->left, cfg->right, cfg->use, cfg->next,
+            cfg->prev, cfg->inv);
   _free(filepath);
 }
 
@@ -120,7 +199,14 @@ write_config(void)
   filepath = get_config_path();
   write_log(LOG_VERBOSE, "%s:\n\tWriting config to %s\n", __func__, filepath);
   f_cfg = fopen(filepath, "w");
-  fwrite(cfg, sizeof(CONFIG), 1, f_cfg);
+  fprintf(f_cfg, "up = \"%c\"\n", cfg->up);
+  fprintf(f_cfg, "down = \"%c\"\n", cfg->down);
+  fprintf(f_cfg, "left = \"%c\"\n", cfg->left);
+  fprintf(f_cfg, "right = \"%c\"\n", cfg->right);
+  fprintf(f_cfg, "use = \"%c\"\n", cfg->use);
+  fprintf(f_cfg, "next = \"%c\"\n", cfg->next);
+  fprintf(f_cfg, "prev = \"%c\"\n", cfg->prev);
+  fprintf(f_cfg, "inv = \"%c\"\n", cfg->inv);
   fclose(f_cfg);
   f_cfg = NULL;
   _free(filepath);

@@ -42,6 +42,46 @@ get_randint(int min, int max)
   return min + rand() % (max - min + 1);
 }
 
+// Splits the string str at the delimiter delim, returns the new string
+char *
+split_str(char * str, char delim)
+{
+  char * newstr, * ptr;
+
+  if ((ptr = strchr(str, delim)) == NULL)
+  {
+    return NULL;
+  }
+  else
+  {
+    *ptr = '\0';
+    newstr = ptr + 1;
+  }
+
+  return newstr;
+}
+
+// Trims the char str at the beginning/end, then returns the trimmed string
+char *
+trim_str(char * str, char totrim)
+{
+  int i;
+  char * pos;
+
+  // trim left side
+  for (i = 0; str[i] == totrim; i++);
+  pos = str;
+  str = &str[i];
+  // Move the string back to where it was
+  memmove(pos, str, strlen(str) + 1);
+
+  // trim right side
+  for (i = (int) strlen(str) - 1; str[i] == totrim; i--);
+  str[i + 1] = '\0';
+
+  return str;
+}
+
 // Prints messages to the log file
 void
 write_log(int level, const char * str, ...)

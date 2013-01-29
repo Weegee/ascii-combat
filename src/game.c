@@ -253,9 +253,9 @@ show_options(void)
     set_winstr(w_sub, 20, 4, A_BOLD, CP_WHITEBLACK, "%c",
                (isspace(cfg->use)) ? '_' : toupper(cfg->use));
     set_winstr(w_sub, 20, 5, A_BOLD, CP_WHITEBLACK, "%c",
-               (isspace(cfg->nextw)) ? '_' : toupper(cfg->nextw));
+               (isspace(cfg->next)) ? '_' : toupper(cfg->next));
     set_winstr(w_sub, 20, 6, A_BOLD, CP_WHITEBLACK, "%c",
-               (isspace(cfg->prevw)) ? '_' : toupper(cfg->prevw));
+               (isspace(cfg->prev)) ? '_' : toupper(cfg->prev));
     set_winstr(w_sub, 20, 7, A_BOLD, CP_WHITEBLACK, "%c",
                (isspace(cfg->inv)) ? '_' : toupper(cfg->inv));
 
@@ -283,35 +283,35 @@ show_options(void)
             (ch != cfg->left) &&
             (ch != cfg->right) &&
             (ch != cfg->use) &&
-            (ch != cfg->nextw) &&
-            (ch != cfg->prevw) &&
+            (ch != cfg->next) &&
+            (ch != cfg->prev) &&
             (ch != cfg->inv))
         {
           switch (index)
           {
             case 0:
-              cfg->up = (char) ch;
+              cfg->up = (unsigned char) ch;
               break;
             case 1:
-              cfg->down = (char) ch;
+              cfg->down = (unsigned char) ch;
               break;
             case 2:
-              cfg->left = (char) ch;
+              cfg->left = (unsigned char) ch;
               break;
             case 3:
-              cfg->right = (char) ch;
+              cfg->right = (unsigned char) ch;
               break;
             case 4:
-              cfg->use = (char) ch;
+              cfg->use = (unsigned char) ch;
               break;
             case 5:
-              cfg->nextw = (char) ch;
+              cfg->next = (unsigned char) ch;
               break;
             case 6:
-              cfg->prevw = (char) ch;
+              cfg->prev = (unsigned char) ch;
               break;
             case 7:
-              cfg->inv = (char) ch;
+              cfg->inv = (unsigned char) ch;
               break;
             default:
               break;
@@ -468,7 +468,7 @@ show_startmenu(void)
   }
 }
 
-// Updates the status window at the bottom of the screen
+// Initialises the status window at the bottom of the screen
 void
 init_status_window(PLAYER * p)
 {

@@ -21,7 +21,6 @@
 
 #include <ncurses.h>
 #include <menu.h>
-#include <string.h>
 #include <stdbool.h>
 
 #include "util.h"

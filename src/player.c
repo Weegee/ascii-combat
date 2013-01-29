@@ -113,11 +113,11 @@ ctrl_player(PLAYER * p)
   {
     set_player_dmg(p, 10); // Just for testing purposes
   }
-  else if (input == cfg->nextw)
+  else if (input == cfg->next)
   {
     // Next weapon
   }
-  else if (input == cfg->prevw)
+  else if (input == cfg->prev)
   {
     // Previous weapon
   }
