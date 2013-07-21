@@ -89,11 +89,6 @@ parse_config(FILE * f_cfg)
   {
     char * key, * value;
 
-    if (linebuffer[0] == '#')
-    {
-      continue;
-    }
-
     value = split_str(linebuffer, '=');
     if (value == NULL)
     {

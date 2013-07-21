@@ -115,6 +115,14 @@ get_highscore_path(void)
     {
       write_log(LOG_INFO, "%s:\n\tDirectory %s already exists\n", __func__,
                 dirpath);
+      strncat(dirpath, "/share", 6);
+      /* Just because ~/.local exists we can't assume that ~/.local/share is
+         there, too */
+      if (mkdir(dirpath, 0755) == -1)
+      {
+        write_log(LOG_INFO, "%s:\n\tDirectory %s already exists\n", __func__,
+                  dirpath);
+      }
     }
     else
     {
