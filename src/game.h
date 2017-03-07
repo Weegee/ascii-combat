@@ -1,5 +1,5 @@
 /* game.h: Declarations for game.c.
- * Copyright (C) 2011 - 2013 Weegee
+ * Copyright (C) 2011 - 2017 Weegee
  *
  * This file is part of ASCII Combat.
  *
