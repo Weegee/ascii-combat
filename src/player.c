@@ -35,6 +35,9 @@ create_player(void)
   p->armour = 100;
   p->score = 0;
   p->exp = 0;
+  p->weapon = 0;
+  p->uplvl = 0;
+  p->dir = DIR_RIGHT;
   set_winchar(lw->w_field, p->x, p->y, A_BOLD, CP_WHITEBLACK, p->ch);
 
   if (LOG_LEVEL >= LOG_VERBOSE)
@@ -63,6 +66,7 @@ ctrl_player(PLAYER * p)
   input = (char) getch();
   if (input == cfg->up)
   {
+    p->dir = DIR_UP;
     p->ch = '^';
     if (p->y > CON_FIELDMINY)
     {
@@ -75,6 +79,7 @@ ctrl_player(PLAYER * p)
   }
   else if (input == cfg->down)
   {
+    p->dir = DIR_DOWN;
     p->ch = 'v';
     if (p->y < CON_FIELDMAXY)
     {
@@ -87,6 +92,7 @@ ctrl_player(PLAYER * p)
   }
   else if (input == cfg->left)
   {
+    p->dir = DIR_LEFT;
     p->ch = '<';
     if (p->x > CON_FIELDMINX)
     {
@@ -99,6 +105,7 @@ ctrl_player(PLAYER * p)
   }
   else if (input == cfg->right)
   {
+    p->dir = DIR_RIGHT;
     p->ch = '>';
     if (p->x < CON_FIELDMAXX)
     {

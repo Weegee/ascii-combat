@@ -23,7 +23,7 @@ int main(void)
   // Random numbers
   srand((unsigned)time(NULL));
 
-  printf("ASCII Combat %s\nCopyright (C) 2011 - 2013 Weegee\n", INFO_VERSION);
+  printf("ASCII Combat %s\nCopyright (C) 2011 - 2017 Weegee\n", INFO_VERSION);
   printf("\nThis program comes with ABSOLUTELY NO WARRANTY.\n"
          "This is free software, and you are welcome to redistribute it\n"
          "under certain conditions; see the COPYING file for details.\n");
