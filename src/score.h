@@ -38,6 +38,7 @@ typedef struct scores
 int cmp_scores(const void * sc1, const void * sc2);
 void ctrl_highscore(int p_exp, int sec_elapsed);
 char * get_highscore_path(void);
+int get_score(int p_exp, int sec_elapsed);
 SCORES * read_highscore(void);
 void show_highscore(void);
 void write_highscore(SCORES * sc);

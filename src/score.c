@@ -47,7 +47,7 @@ ctrl_highscore(int p_exp, int sec_elapsed)
   int p_score;
   SCORES * sc;
 
-  p_score = p_exp + sec_elapsed / 2; // TODO
+  p_score = get_score(p_exp, sec_elapsed);
   sc = read_highscore();
 
   /* Replace the lowest score in the highscore array if the new score is higher.
@@ -82,6 +82,18 @@ ctrl_highscore(int p_exp, int sec_elapsed)
   }
 
   _free(sc);
+}
+
+// Calculates the player score
+int
+get_score(int p_exp, int sec_elapsed)
+{
+  int score;
+
+  score = p_exp + sec_elapsed / 2; // TODO
+  write_log(LOG_DEBUG, "%s:\n\tscore: %d\n", __func__, score);
+
+  return score;
 }
 
 // Returns the path to the highscore file
